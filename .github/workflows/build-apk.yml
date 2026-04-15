@@ -17,20 +17,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java
+        id: setup-java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
       # Performance: Build Cache
       - name: Cache Gradle packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
@@ -38,10 +41,14 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Build release APK
-        run: ./gradlew assembleRelease
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        run: ./gradlew assembleRelease --no-daemon
         continue-on-error: true
 
       - name: Upload debug APK
