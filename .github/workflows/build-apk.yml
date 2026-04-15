@@ -56,14 +56,14 @@ jobs:
         if: always()
         with:
           name: debug-apk
-          path: '**/build/outputs/apk/debug/**/*.apk'
+          path: androidApp/build/outputs/apk/**/debug/**/*.apk
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: release-apk
-          path: '**/build/outputs/apk/release/**/*.apk'
+          path: androidApp/build/outputs/apk/**/release/**/*.apk
 
       # Security: Dependency Check
       - name: Dependency Check
@@ -78,14 +78,14 @@ jobs:
         if: always()
         with:
           name: dependency-check-report
-          path: 'reports/'
+          path: reports/
 
       # Security: APK Signing
       - name: Sign Release APK
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          releaseDirectory: androidApp/build/outputs/apk/foss/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.SIGNING_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
