@@ -31,9 +31,14 @@ android {
     // Include composeApp's assets (which contain compose resources)
     sourceSets {
         getByName("main") {
-            assets.directories.add(
-                project(":composeApp").file("build/generated/assets/copyAndroidMainComposeResourcesToAndroidAssets").path,
-            )
+            // Wire via task provider so AGP/Gradle 9 can infer the implicit dependency
+            // and :screenshotTests:mergeDebugAssets doesn't fail validation.
+            val copyTask = project(":composeApp")
+                .tasks
+                .named("copyAndroidMainComposeResourcesToAndroidAssets")
+            assets.srcDir(copyTask.map { task ->
+                task.outputs.files.singleFile
+            })
         }
     }
 }
