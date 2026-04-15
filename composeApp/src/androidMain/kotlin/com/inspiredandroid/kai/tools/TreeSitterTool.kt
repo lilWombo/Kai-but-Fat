@@ -122,8 +122,13 @@ Provide either file_path (sandbox path) or inline code via the code parameter.""
     }
 
     private fun languageExt(language: String): String = when (language) {
-        "python" -> "py"; "javascript" -> "js"; "typescript" -> "ts"
-        "kotlin" -> "kt"; "java" -> "java"; "rust" -> "rs"; "go" -> "go"
+        "python" -> "py"
+        "javascript" -> "js"
+        "typescript" -> "ts"
+        "kotlin" -> "kt"
+        "java" -> "java"
+        "rust" -> "rs"
+        "go" -> "go"
         else -> "txt"
     }
 
@@ -185,7 +190,7 @@ try:
    print(src[:4000])
 except Exception as e:
  print(json.dumps({'error':str(e)}));sys.exit(1)
-""".trimIndent().replace("\n", ";").let { it }
+        """.trimIndent().replace("\n", ";").let { it }
     }
 
     val toolInfo = ToolInfo(

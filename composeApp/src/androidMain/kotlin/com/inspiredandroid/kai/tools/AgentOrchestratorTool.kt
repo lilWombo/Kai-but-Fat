@@ -146,7 +146,7 @@ except ImportError:
 except Exception:
     traceback.print_exc()
     sys.exit(1)
-""".trimIndent()
+        """.trimIndent()
     }
 
     val toolInfo = ToolInfo(

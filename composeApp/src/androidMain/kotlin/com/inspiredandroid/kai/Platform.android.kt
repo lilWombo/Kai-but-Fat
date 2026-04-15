@@ -21,6 +21,7 @@ import com.inspiredandroid.kai.network.tools.ParameterSchema
 import com.inspiredandroid.kai.network.tools.Tool
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.network.tools.ToolSchema
+import com.inspiredandroid.kai.tools.AgentOrchestratorTool
 import com.inspiredandroid.kai.tools.CalendarPermissionController
 import com.inspiredandroid.kai.tools.CalendarRepository
 import com.inspiredandroid.kai.tools.CalendarResult
@@ -30,9 +31,13 @@ import com.inspiredandroid.kai.tools.HeartbeatTools
 import com.inspiredandroid.kai.tools.NotificationHelper
 import com.inspiredandroid.kai.tools.NotificationPermissionController
 import com.inspiredandroid.kai.tools.NotificationResult
+import com.inspiredandroid.kai.tools.OllamaTool
 import com.inspiredandroid.kai.tools.ProcessManagerTool
 import com.inspiredandroid.kai.tools.SchedulingTools
 import com.inspiredandroid.kai.tools.ShellCommandTool
+import com.inspiredandroid.kai.tools.TavilySearchTool
+import com.inspiredandroid.kai.tools.TreeSitterTool
+import com.inspiredandroid.kai.tools.VectorMemoryTool
 import com.inspiredandroid.kai.tools.WebSearchTool
 import com.russhwolf.settings.BuildConfig
 import com.russhwolf.settings.Settings
@@ -56,11 +61,6 @@ import kai.composeapp.generated.resources.tool_set_alarm_name
 import kotlinx.coroutines.Dispatchers
 import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.CoroutineContext
-import com.inspiredandroid.kai.tools.AgentOrchestratorTool
-import com.inspiredandroid.kai.tools.OllamaTool
-import com.inspiredandroid.kai.tools.TavilySearchTool
-import com.inspiredandroid.kai.tools.TreeSitterTool
-import com.inspiredandroid.kai.tools.VectorMemoryTool
 
 actual fun httpClient(config: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(Android) {
     config(this)

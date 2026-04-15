@@ -463,10 +463,14 @@ class AppSettings(private val settings: Settings) {
     }
 
     fun getTavilyApiKey(): String = settings.getString(KEY_TAVILY_API_KEY, "")
-    fun setTavilyApiKey(key: String) { settings.putString(KEY_TAVILY_API_KEY, key) }
+    fun setTavilyApiKey(key: String) {
+        settings.putString(KEY_TAVILY_API_KEY, key)
+    }
 
     fun isFirstRunSetupComplete(): Boolean = settings.getBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, false)
-    fun setFirstRunSetupComplete(complete: Boolean) { settings.putBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, complete) }
+    fun setFirstRunSetupComplete(complete: Boolean) {
+        settings.putBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, complete)
+    }
 
     fun getScheduledTasksJson(): String = settings.getString(KEY_SCHEDULED_TASKS, "[]")
 

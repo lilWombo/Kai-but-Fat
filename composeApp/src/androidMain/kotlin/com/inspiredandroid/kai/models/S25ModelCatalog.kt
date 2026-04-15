@@ -25,10 +25,10 @@ data class S25Model(
 )
 
 enum class S25ModelCategory {
-    GENERAL,    // Best all-round assistant
-    CODING,     // Code generation and editing
-    FAST,       // Low latency, minimal RAM footprint
-    REASONING,  // Extended chain-of-thought / math
+    GENERAL, // Best all-round assistant
+    CODING, // Code generation and editing
+    FAST, // Low latency, minimal RAM footprint
+    REASONING, // Extended chain-of-thought / math
 }
 
 object S25ModelCatalog {

@@ -6,8 +6,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.post
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -85,8 +85,7 @@ class OllamaServerManager(
         else -> "arm64"
     }
 
-    fun isInstalled(): Boolean =
-        File(sandboxManager.rootfsPath, "usr/local/bin/ollama").exists()
+    fun isInstalled(): Boolean = File(sandboxManager.rootfsPath, "usr/local/bin/ollama").exists()
 
     fun install() {
         scope.launch {
@@ -189,20 +188,19 @@ class OllamaServerManager(
         }
     }
 
-    suspend fun pullModel(modelName: String, onProgress: (String) -> Unit): Boolean =
-        withContext(Dispatchers.IO) {
-            try {
-                val executor = sandboxManager.createProotExecutor()
-                val handle = executor.executeStreaming(
-                    command = "ollama pull $modelName",
-                    onStdout = { onProgress(it) },
-                    onStderr = { onProgress(it) },
-                )
-                handle.awaitExit() == 0
-            } catch (_: Exception) {
-                false
-            }
+    suspend fun pullModel(modelName: String, onProgress: (String) -> Unit): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val executor = sandboxManager.createProotExecutor()
+            val handle = executor.executeStreaming(
+                command = "ollama pull $modelName",
+                onStdout = { onProgress(it) },
+                onStderr = { onProgress(it) },
+            )
+            handle.awaitExit() == 0
+        } catch (_: Exception) {
+            false
         }
+    }
 
     suspend fun generate(model: String, prompt: String): String = withContext(Dispatchers.IO) {
         try {

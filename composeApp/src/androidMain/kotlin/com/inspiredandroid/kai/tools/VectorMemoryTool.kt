@@ -82,7 +82,9 @@ Data persists at /root/kai-chroma across app restarts.""",
 
         return when (operation) {
             "status" -> checkStatus()
+
             "start_server" -> startServer()
+
             "add" -> {
                 val text = args["text"]?.toString()
                     ?: return mapOf("success" to false, "error" to "text is required for add")
@@ -100,6 +102,7 @@ Data persists at /root/kai-chroma across app restarts.""",
             }
 
             "list" -> listDocuments(collection)
+
             "delete" -> {
                 val id = args["id"]?.toString()
                     ?: return mapOf("success" to false, "error" to "id is required for delete")

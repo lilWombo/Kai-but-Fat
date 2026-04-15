@@ -138,7 +138,6 @@ class FirstRunSetupManager(
             appSettings.setFirstRunSetupComplete(true)
             _phase.value = SetupPhase.Complete
             android.util.Log.i("FirstRunSetup", "First-run setup complete")
-
         } catch (e: Exception) {
             android.util.Log.e("FirstRunSetup", "Setup failed", e)
             _phase.value = SetupPhase.Failed("Setup", e.message ?: "Unknown error")
