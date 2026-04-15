@@ -54,11 +54,12 @@ dependencies {
 // Ensure composeApp resources are generated before screenshot tests.
 // Gradle 9 strict validation requires explicit dependsOn for ANY task that reads
 // another task's output directory — including mergeDebugAssets/mergeReleaseAssets.
-tasks.matching {
-    it.name.contains("preparePaparazzi") || it.name.matches(Regex("merge.*Assets"))
-}.configureEach {
-    dependsOn(":composeApp:copyAndroidMainComposeResourcesToAndroidAssets")
-}
+tasks
+    .matching {
+        it.name.contains("preparePaparazzi") || it.name.matches(Regex("merge.*Assets"))
+    }.configureEach {
+        dependsOn(":composeApp:copyAndroidMainComposeResourcesToAndroidAssets")
+    }
 
 // Only run store screenshot tests when generating store screenshots
 tasks.matching { it.name == "testDebugUnitTest" }.configureEach {
