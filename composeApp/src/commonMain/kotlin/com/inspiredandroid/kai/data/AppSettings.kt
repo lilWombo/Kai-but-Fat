@@ -462,6 +462,12 @@ class AppSettings(private val settings: Settings) {
         settings.putBoolean(KEY_SANDBOX_ENABLED, enabled)
     }
 
+    fun getTavilyApiKey(): String = settings.getString(KEY_TAVILY_API_KEY, "")
+    fun setTavilyApiKey(key: String) { settings.putString(KEY_TAVILY_API_KEY, key) }
+
+    fun isFirstRunSetupComplete(): Boolean = settings.getBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, false)
+    fun setFirstRunSetupComplete(complete: Boolean) { settings.putBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, complete) }
+
     fun getScheduledTasksJson(): String = settings.getString(KEY_SCHEDULED_TASKS, "[]")
 
     fun setScheduledTasksJson(json: String) {
@@ -1054,6 +1060,9 @@ class AppSettings(private val settings: Settings) {
         const val KEY_MODEL_CONTEXT_PREFIX = "model_context_"
 
         const val KEY_SANDBOX_ENABLED = "sandbox_enabled"
+
+        const val KEY_TAVILY_API_KEY = "tavily_api_key"
+        const val KEY_FIRST_RUN_SETUP_COMPLETE = "first_run_setup_complete"
 
         // Basic memory guidance shared by every chat variant. The advanced `## Structured
         // Learning` block lives in `ChatSystemPromptBuilder.DEFAULT_STRUCTURED_LEARNING_SECTION`

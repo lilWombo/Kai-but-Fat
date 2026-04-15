@@ -56,6 +56,11 @@ import kai.composeapp.generated.resources.tool_set_alarm_name
 import kotlinx.coroutines.Dispatchers
 import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.CoroutineContext
+import com.inspiredandroid.kai.tools.AgentOrchestratorTool
+import com.inspiredandroid.kai.tools.OllamaTool
+import com.inspiredandroid.kai.tools.TavilySearchTool
+import com.inspiredandroid.kai.tools.TreeSitterTool
+import com.inspiredandroid.kai.tools.VectorMemoryTool
 
 actual fun httpClient(config: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(Android) {
     config(this)
@@ -164,6 +169,31 @@ actual fun getPlatformToolDefinitions(): List<ToolInfo> = CommonTools.commonTool
         description = "Set an alarm or countdown timer on the device",
         nameRes = Res.string.tool_set_alarm_name,
         descriptionRes = Res.string.tool_set_alarm_description,
+    ),
+    ToolInfo(
+        id = "tavily_search",
+        name = "Tavily AI Search",
+        description = "AI-powered web search with direct answers and cited sources",
+    ),
+    ToolInfo(
+        id = "vector_memory",
+        name = "Vector Memory (ChromaDB)",
+        description = "Semantic memory — store and retrieve by meaning",
+    ),
+    ToolInfo(
+        id = "parse_code",
+        name = "Code Parser (Tree-sitter)",
+        description = "Parse code structure — symbols, functions, metrics",
+    ),
+    ToolInfo(
+        id = "run_agent",
+        name = "Agent Orchestrator (smolagents)",
+        description = "Run multi-step autonomous Python agents for complex tasks",
+    ),
+    ToolInfo(
+        id = "ollama",
+        name = "On-Device Ollama",
+        description = "Download and run local LLMs on the S25 Ultra with zero API cost",
     ),
 )
 
@@ -376,6 +406,22 @@ actual fun getAvailableTools(): List<Tool> {
 
         val mcpServerManager: McpServerManager by inject(McpServerManager::class.java)
         addAll(mcpServerManager.getEnabledMcpTools())
+
+        if (appSettings.isToolEnabled(TavilySearchTool.schema.name)) {
+            add(TavilySearchTool)
+        }
+        if (appSettings.isToolEnabled(VectorMemoryTool.schema.name)) {
+            add(VectorMemoryTool)
+        }
+        if (appSettings.isToolEnabled(TreeSitterTool.schema.name)) {
+            add(TreeSitterTool)
+        }
+        if (appSettings.isToolEnabled(AgentOrchestratorTool.schema.name)) {
+            add(AgentOrchestratorTool)
+        }
+        if (appSettings.isToolEnabled(OllamaTool.schema.name)) {
+            add(OllamaTool)
+        }
     }
 }
 
