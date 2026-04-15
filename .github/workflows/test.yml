@@ -36,14 +36,17 @@ jobs:
             echo "is_fork=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Java
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -64,15 +67,23 @@ jobs:
           java -version
 
       - name: Run spotlessApply
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew spotlessApply --no-daemon --stacktrace
 
       - name: Run updateScreenshots
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew :screenshotTests:updateScreenshots --no-daemon --stacktrace
 
       - name: Run desktop tests
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew :composeApp:desktopTest --no-daemon --stacktrace
 
       - name: Verify desktop release build (ProGuard sanity)
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: ./gradlew :composeApp:createReleaseDistributable --no-daemon --stacktrace
 
       - name: Check for changes
