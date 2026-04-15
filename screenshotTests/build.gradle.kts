@@ -31,14 +31,9 @@ android {
     // Include composeApp's assets (which contain compose resources)
     sourceSets {
         getByName("main") {
-            // Wire via task provider so AGP/Gradle 9 can infer the implicit dependency
-            // and :screenshotTests:mergeDebugAssets doesn't fail validation.
-            val copyTask = project(":composeApp")
-                .tasks
-                .named("copyAndroidMainComposeResourcesToAndroidAssets")
-            assets.srcDir(copyTask.map { task ->
-                task.outputs.files.singleFile
-            })
+            assets.directories.add(
+                project(":composeApp").file("build/generated/assets/copyAndroidMainComposeResourcesToAndroidAssets").path,
+            )
         }
     }
 }
@@ -56,8 +51,12 @@ dependencies {
     testImplementation(libs.compose.components.resources)
 }
 
-// Ensure composeApp resources are generated before screenshot tests
-tasks.matching { it.name.contains("preparePaparazzi") }.configureEach {
+// Ensure composeApp resources are generated before screenshot tests.
+// Gradle 9 strict validation requires explicit dependsOn for ANY task that reads
+// another task's output directory — including mergeDebugAssets/mergeReleaseAssets.
+tasks.matching {
+    it.name.contains("preparePaparazzi") || it.name.matches(Regex("merge.*Assets"))
+}.configureEach {
     dependsOn(":composeApp:copyAndroidMainComposeResourcesToAndroidAssets")
 }
 
