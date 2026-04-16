@@ -60,4 +60,44 @@ val popularMcpServers = listOf(
         url = "https://mcp.open-mcp.org/api/server/open-weather@latest/mcp",
         description = "Global weather forecasts and air quality",
     ),
+    PopularMcpServer(
+        name = "Brave Search",
+        url = "https://remote.mcpservers.org/brave-search/mcp",
+        description = "Privacy-focused web search with clean results",
+    ),
+    PopularMcpServer(
+        name = "HackerNews",
+        url = "https://remote.mcpservers.org/hackernews/mcp",
+        description = "Top stories, comments, and jobs from Hacker News",
+    ),
+    PopularMcpServer(
+        name = "ArXiv Papers",
+        url = "https://remote.mcpservers.org/arxiv/mcp",
+        description = "Search and read academic papers from arXiv.org",
+    ),
+    PopularMcpServer(
+        name = "Wikipedia",
+        url = "https://remote.mcpservers.org/wikipedia/mcp",
+        description = "Search Wikipedia and retrieve full article content",
+    ),
+    PopularMcpServer(
+        name = "GitHub Public",
+        url = "https://remote.mcpservers.org/github/mcp",
+        description = "Search public GitHub repos, issues, and code",
+    ),
+    PopularMcpServer(
+        name = "Persistent Memory",
+        url = "https://remote.mcpservers.org/memory/mcp",
+        description = "Key-value memory that persists across conversations",
+    ),
+    PopularMcpServer(
+        name = "Time & Timezone",
+        url = "https://remote.mcpservers.org/time/mcp",
+        description = "Current time, timezone conversions, date arithmetic",
+    ),
+    PopularMcpServer(
+        name = "Wolfram Alpha",
+        url = "https://remote.mcpservers.org/wolframalpha/mcp",
+        description = "Computational knowledge engine — math, science, data",
+    ),
 )

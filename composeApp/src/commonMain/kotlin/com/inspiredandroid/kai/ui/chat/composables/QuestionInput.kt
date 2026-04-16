@@ -59,6 +59,7 @@ import com.inspiredandroid.kai.ui.handCursor
 import com.inspiredandroid.kai.ui.outlineTextFieldColors
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.PickerMode
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.extension
 import io.github.vinceglb.filekit.name
@@ -142,8 +143,9 @@ fun QuestionInput(
         val filePickerLauncher = if (allowFileAttachment) {
             rememberFilePickerLauncher(
                 type = FileKitType.File(extensions = supportedFileExtensions),
-            ) { file ->
-                if (file != null) addFile(file)
+                mode = PickerMode.Multiple(),
+            ) { files ->
+                files?.forEach { addFile(it) }
             }
         } else {
             null

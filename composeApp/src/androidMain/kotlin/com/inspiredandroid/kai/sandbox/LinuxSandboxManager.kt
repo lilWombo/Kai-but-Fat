@@ -21,6 +21,9 @@ class LinuxSandboxManager(private val context: Context) {
     private val _state = MutableStateFlow<SandboxState>(SandboxState.NotInstalled)
     val state: StateFlow<SandboxState> = _state
 
+    /** Maximum disk space the sandbox is allowed to consume (10 GB). */
+    private val maxSandboxBytes = 10L * 1024L * 1024L * 1024L
+
     private val sandboxDir: File
         get() = File(context.filesDir, "linux-sandbox")
 
@@ -189,6 +192,12 @@ class LinuxSandboxManager(private val context: Context) {
             _state.value = SandboxState.NotInstalled
         }
     }
+
+    /** Quota ceiling in MB (10 240 MB = 10 GB). */
+    val diskQuotaMB: Long get() = maxSandboxBytes / (1024L * 1024L)
+
+    /** True when sandbox is still within the 10 GB quota. */
+    fun isWithinQuota(): Boolean = getDiskUsageMB() < diskQuotaMB
 
     fun getDiskUsageMB(): Long {
         if (!sandboxDir.exists()) return 0

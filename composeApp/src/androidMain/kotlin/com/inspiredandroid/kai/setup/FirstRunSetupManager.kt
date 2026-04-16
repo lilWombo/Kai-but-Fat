@@ -75,6 +75,7 @@ class FirstRunSetupManager(
             "Installing base packages",
             "Installing Python AI stack",
             "Installing Ollama",
+            "Pulling default model (gemma3:1b)",
         )
 
         fun phase(i: Int) = SetupPhase.InProgress(steps[i], i + 1, steps.size)
@@ -124,13 +125,37 @@ class FirstRunSetupManager(
                 }
             }
 
-            // ── Step 4: Ollama ───────────────────────────────────────────────
+            // ── Step 4: Ollama binary ────────────────────────────────────────
             _phase.value = phase(3)
             if (!ollamaManager.isInstalled()) {
                 ollamaManager.install()
-                repeat(60) {
+                repeat(90) {
                     delay(1000)
                     if (ollamaManager.isInstalled()) return@repeat
+                }
+            }
+
+            // ── Step 5: Pre-pull gemma3:1b (0.8 GB) ─────────────────────────
+            // Start the server and pull the smallest curated model so the user
+            // has a working local LLM immediately without any manual action.
+            _phase.value = phase(4)
+            if (ollamaManager.isInstalled()) {
+                runCatching {
+                    ollamaManager.start()
+                    delay(4_000) // wait for server to bind
+                    val executor = sandboxManager.createProotExecutor()
+                    val result = executor.execute(
+                        "OLLAMA_HOST=127.0.0.1:11434 ollama pull gemma3:1b",
+                        timeoutSeconds = 600,
+                    )
+                    if ((result["exit_code"] as? Int) == 0) {
+                        appSettings.setTavilyApiKey(appSettings.getTavilyApiKey()) // no-op, keeps key
+                        android.util.Log.i("FirstRunSetup", "gemma3:1b pulled successfully")
+                    } else {
+                        android.util.Log.w("FirstRunSetup", "gemma3:1b pull: ${result["stderr"]}")
+                    }
+                }.onFailure {
+                    android.util.Log.w("FirstRunSetup", "gemma3:1b pull skipped: ${it.message}")
                 }
             }
 
