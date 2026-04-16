@@ -177,7 +177,7 @@ fun TerminalContent(
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = "Alpine Linux",
+                    text = "Debian Linux",
                     style = monoStyle(12.sp, colors.text.copy(alpha = 0.5f)),
                 )
             }

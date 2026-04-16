@@ -2087,7 +2087,7 @@ private fun TerminalTabContent(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Alpine Linux",
+                            text = "Debian Linux",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
@@ -2168,7 +2168,7 @@ private fun TerminalTabContent(
         Column(modifier = Modifier.fillMaxWidth()) {
             SettingsCard {
                 Text(
-                    text = "Alpine Linux",
+                    text = "Debian Linux",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
