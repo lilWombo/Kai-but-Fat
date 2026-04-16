@@ -37,6 +37,7 @@ materialIcons = "1.7.3"
 
 [libraries]
 commons-compress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
+tukaani-xz = { module = "org.tukaani:xz", version = "1.9" }
 
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }

@@ -80,7 +80,6 @@ val popularMcpServers = listOf(
         url = "https://remote.mcpservers.org/playwright/mcp",
         description = "Full browser automation — screenshots, scraping, form filling",
     ),
-
     PopularMcpServer(
         name = "Persistent Memory",
         url = "https://remote.mcpservers.org/memory/mcp",
@@ -91,5 +90,4 @@ val popularMcpServers = listOf(
         url = "https://remote.mcpservers.org/time/mcp",
         description = "Current time, timezone conversions, date arithmetic",
     ),
-
 )

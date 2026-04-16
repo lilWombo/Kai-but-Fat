@@ -86,6 +86,7 @@ kotlin {
             implementation(libs.spght.encryptedprefs)
             implementation(libs.ktor.client.android)
             implementation(libs.commons.compress)
+            implementation(libs.tukaani.xz)
             implementation(libs.koin.android)
             implementation(libs.material)
             implementation(libs.bouncycastle.provider)
