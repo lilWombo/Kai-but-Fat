@@ -71,20 +71,16 @@ val popularMcpServers = listOf(
         description = "Top stories, comments, and jobs from Hacker News",
     ),
     PopularMcpServer(
-        name = "ArXiv Papers",
-        url = "https://remote.mcpservers.org/arxiv/mcp",
-        description = "Search and read academic papers from arXiv.org",
+        name = "Exa Search",
+        url = "https://mcp.exa.ai/mcp",
+        description = "AI-powered neural search across the web and research papers",
     ),
     PopularMcpServer(
-        name = "Wikipedia",
-        url = "https://remote.mcpservers.org/wikipedia/mcp",
-        description = "Search Wikipedia and retrieve full article content",
+        name = "Playwright Browser",
+        url = "https://remote.mcpservers.org/playwright/mcp",
+        description = "Full browser automation — screenshots, scraping, form filling",
     ),
-    PopularMcpServer(
-        name = "GitHub Public",
-        url = "https://remote.mcpservers.org/github/mcp",
-        description = "Search public GitHub repos, issues, and code",
-    ),
+
     PopularMcpServer(
         name = "Persistent Memory",
         url = "https://remote.mcpservers.org/memory/mcp",
@@ -95,9 +91,5 @@ val popularMcpServers = listOf(
         url = "https://remote.mcpservers.org/time/mcp",
         description = "Current time, timezone conversions, date arithmetic",
     ),
-    PopularMcpServer(
-        name = "Wolfram Alpha",
-        url = "https://remote.mcpservers.org/wolframalpha/mcp",
-        description = "Computational knowledge engine — math, science, data",
-    ),
+
 )

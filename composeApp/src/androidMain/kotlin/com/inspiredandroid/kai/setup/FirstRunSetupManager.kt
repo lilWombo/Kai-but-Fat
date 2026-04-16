@@ -34,8 +34,8 @@ sealed class SetupPhase {
 /**
  * Orchestrates the full autonomous first-run setup on installation:
  *
- * 1. Install Alpine Linux proot sandbox (rootfs + debootstrap)
- * 2. Install base packages: python3, pip3, git, curl, openssh-client
+ * 1. Install Debian bookworm-slim proot sandbox (rootfs via debuerreotype CDN)
+ * 2. Install base packages: python3, python3-pip, git, curl, wget, nodejs
  * 3. Install Python AI stack: chromadb, smolagents, openai, tree-sitter, uvicorn
  * 4. Download & install the Ollama binary for the device architecture
  *
@@ -149,7 +149,6 @@ class FirstRunSetupManager(
                         timeoutSeconds = 600,
                     )
                     if ((result["exit_code"] as? Int) == 0) {
-                        appSettings.setTavilyApiKey(appSettings.getTavilyApiKey()) // no-op, keeps key
                         android.util.Log.i("FirstRunSetup", "gemma3:1b pulled successfully")
                     } else {
                         android.util.Log.w("FirstRunSetup", "gemma3:1b pull: ${result["stderr"]}")

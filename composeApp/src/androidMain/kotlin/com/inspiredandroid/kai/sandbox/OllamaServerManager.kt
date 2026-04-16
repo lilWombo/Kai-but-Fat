@@ -50,7 +50,7 @@ data class OllamaModelInfo(
 data class OllamaListResponse(val models: List<OllamaModelInfo> = emptyList())
 
 /**
- * Manages the Ollama LLM server running inside the proot Alpine Linux sandbox.
+ * Manages the Ollama LLM server running inside the proot Debian bookworm-slim sandbox.
  * Downloads the static Ollama binary, installs it to the sandbox rootfs, and
  * manages the server lifecycle. Exposes an OpenAI-compatible API at localhost:11434.
  */

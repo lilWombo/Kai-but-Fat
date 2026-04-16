@@ -16,7 +16,7 @@ import java.io.FileOutputStream
 // Branch names are stable and versioned by architecture; the file path never changes.
 private const val DEBIAN_RELEASE = "bookworm"
 private const val DEBIAN_BASE_URL =
-    "https://github.com/debuerreotype/docker-debian-artifacts/raw"
+    "https://raw.githubusercontent.com/debuerreotype/docker-debian-artifacts"
 
 private const val BUFFER_SIZE = 8192
 private const val TAR_BLOCK_SIZE = 512
