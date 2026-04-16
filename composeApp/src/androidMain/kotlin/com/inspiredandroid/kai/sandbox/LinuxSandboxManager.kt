@@ -77,7 +77,7 @@ class LinuxSandboxManager(private val context: Context) {
         currentJob?.cancel()
         currentJob = null
         // Clean up partial downloads
-        File(sandboxDir, "rootfs.tar.gz").delete()
+        File(sandboxDir, "rootfs.tar.xz").delete()
         // Determine correct state based on what exists
         val rootfs = File(sandboxDir, "rootfs")
         if (rootfs.isDirectory && File(prootPath).exists()) {
@@ -110,7 +110,7 @@ class LinuxSandboxManager(private val context: Context) {
         // Download rootfs
         val rootfsDir = File(sandboxDir, "rootfs")
         if (!rootfsDir.isDirectory) {
-            val tarGzFile = File(sandboxDir, "rootfs.tar.gz")
+            val tarGzFile = File(sandboxDir, "rootfs.tar.xz")
             try {
                 _state.value = SandboxState.Downloading(0f)
                 downloader.download(arch, tarGzFile) { progress ->
@@ -118,7 +118,7 @@ class LinuxSandboxManager(private val context: Context) {
                 }
 
                 _state.value = SandboxState.Extracting
-                downloader.extractTarGz(tarGzFile, rootfsDir)
+                downloader.extractTarXz(tarGzFile, rootfsDir)
             } finally {
                 tarGzFile.delete()
             }
@@ -130,7 +130,7 @@ class LinuxSandboxManager(private val context: Context) {
         downloader.writeResolvConf(rootfsDir)
 
         val executor = createProotExecutor()
-        executor.execute("apk update", timeoutSeconds = 60)
+        executor.execute("apt-get update -qq", timeoutSeconds = 60)
 
         _state.value = SandboxState.Ready
     }
@@ -155,14 +155,14 @@ class LinuxSandboxManager(private val context: Context) {
 
     fun installPackages() {
         if (currentJob?.isActive == true) return
-        val packages = listOf("bash", "curl", "wget", "git", "jq", "python3", "py3-pip", "nodejs")
+        val packages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
             try {
                 val executor = createProotExecutor()
                 for (pkg in packages) {
                     ensureActive()
                     _state.value = SandboxState.Installing("Installing $pkg...")
-                    val result = executor.execute("apk add --no-cache $pkg", timeoutSeconds = 120)
+                    val result = executor.execute("DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $pkg", timeoutSeconds = 120)
                     ensureActive()
                     val success = result["success"] as? Boolean ?: false
                     if (!success) {

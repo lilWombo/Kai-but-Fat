@@ -11,9 +11,9 @@ import kai.composeapp.generated.resources.tool_execute_shell_command_description
 import kai.composeapp.generated.resources.tool_execute_shell_command_name
 import org.koin.java.KoinJavaComponent.inject
 
-private const val TOOL_DESCRIPTION = """Execute a shell command in an Alpine Linux sandbox and return stdout, stderr, and exit code. The environment is a full Alpine Linux system running via proot with:
-- Shell: /bin/sh (busybox), bash available if installed
-- Package manager: apk (e.g. "apk add <package>")
+private const val TOOL_DESCRIPTION = """Execute a shell command in a Debian bookworm-slim sandbox and return stdout, stderr, and exit code. The environment is a full Debian Linux system running via proot with:
+- Shell: /bin/bash
+- Package manager: apt-get (e.g. "apt-get install -y <package>")
 - Default working directory: /root
 - Network access available (curl, wget)
 - Persistent home directory at /root across commands
@@ -21,8 +21,8 @@ Each command runs in a fresh shell — use "cd dir && command" for directory cha
 Output is limited to 15000 characters per stream; for large output, pipe through head/tail.
 Default timeout: 30s, max: 60s.
 Set background=true to run long-lived processes. Use the manage_process tool to check on them.
-Install packages with: apk add <package>
-Common packages: python3, py3-pip, nodejs, git, curl, wget, jq, bash, gcc, make"""
+Install packages with: apt-get install -y <package>
+Common packages: python3, python3-pip, nodejs, git, curl, wget, jq, bash, gcc, make, build-essential"""
 
 object ShellCommandTool : Tool {
     private val sandboxManager: LinuxSandboxManager by inject(LinuxSandboxManager::class.java)

@@ -36,6 +36,8 @@ litert-lm = "0.10.0"
 materialIcons = "1.7.3"
 
 [libraries]
+commons-compress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
+
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekitCore" }

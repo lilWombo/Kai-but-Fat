@@ -5,14 +5,19 @@ import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.contentLength
 import io.ktor.utils.io.readAvailable
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.util.zip.GZIPInputStream
 
-private const val ALPINE_VERSION = "3.21.3"
-private const val ALPINE_BRANCH = "v3.21"
+// Debian bookworm-slim rootfs from the official debuerreotype GitHub repository.
+// These are the same tarballs used by the official Debian Docker images.
+// Branch names are stable and versioned by architecture; the file path never changes.
+private const val DEBIAN_RELEASE = "bookworm"
+private const val DEBIAN_BASE_URL =
+    "https://github.com/debuerreotype/docker-debian-artifacts/raw"
+
 private const val BUFFER_SIZE = 8192
 private const val TAR_BLOCK_SIZE = 512
 private const val TAR_NAME_OFFSET = 0
@@ -24,7 +29,30 @@ private const val TAR_PREFIX_OFFSET = 345
 
 class RootfsDownloader(private val httpClient: HttpClient) {
 
-    fun getDownloadUrl(arch: String): String = "https://dl-cdn.alpinelinux.org/alpine/$ALPINE_BRANCH/releases/$arch/alpine-minirootfs-$ALPINE_VERSION-$arch.tar.gz"
+    /**
+     * Returns the Debian bookworm-slim rootfs URL for the given architecture.
+     * debuerreotype publishes one branch per architecture in the form `dist-<arch>`.
+     *
+     * | proot arch  | debuerreotype branch |
+     * |-------------|----------------------|
+     * | aarch64     | dist-arm64v8         |
+     * | x86_64      | dist-amd64           |
+     * | armhf       | dist-arm32v7         |
+     * | x86         | dist-i386            |
+     */
+    fun getDownloadUrl(arch: String): String {
+        val branch = when (arch) {
+            "aarch64" -> "dist-arm64v8"
+            "x86_64"  -> "dist-amd64"
+            "armhf"   -> "dist-arm32v7"
+            "x86"     -> "dist-i386"
+            else      -> "dist-arm64v8"
+        }
+        return "$DEBIAN_BASE_URL/$branch/$DEBIAN_RELEASE/slim/rootfs.tar.xz"
+    }
+
+    /** Expected filename extension for the Debian rootfs archive. */
+    val archiveExtension: String get() = "tar.xz"
 
     suspend fun download(
         arch: String,
@@ -52,12 +80,16 @@ class RootfsDownloader(private val httpClient: HttpClient) {
         }
     }
 
-    fun extractTarGz(tarGzFile: File, targetDir: File) {
+    /** Extract a .tar.xz archive (Debian bookworm-slim format). */
+    fun extractTarXz(tarXzFile: File, targetDir: File) {
         targetDir.mkdirs()
-        GZIPInputStream(BufferedInputStream(FileInputStream(tarGzFile))).use { gzipStream ->
-            extractTar(gzipStream, targetDir)
+        XZCompressorInputStream(BufferedInputStream(FileInputStream(tarXzFile))).use { xzStream ->
+            extractTar(xzStream, targetDir)
         }
     }
+
+    /** Kept for backwards-compatibility if any callers still reference it. */
+    fun extractTarGz(tarGzFile: File, targetDir: File) = extractTarXz(tarGzFile, targetDir)
 
     private fun extractTar(inputStream: java.io.InputStream, targetDir: File) {
         val headerBuffer = ByteArray(TAR_BLOCK_SIZE)
