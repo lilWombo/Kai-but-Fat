@@ -173,10 +173,12 @@ compose.desktop {
 
             macOS {
                 iconFile.set(project.file("icon.icns"))
+                dmgPackageVersion = "6.96.9"
             }
             windows {
                 iconFile.set(project.file("icon.ico"))
                 menuGroup = "Kai"
+                msiPackageVersion = "6.96.9"
             }
             linux {
                 iconFile.set(project.file("icon.png"))
