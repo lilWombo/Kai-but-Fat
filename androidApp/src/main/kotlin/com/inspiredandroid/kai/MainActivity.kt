@@ -7,8 +7,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,8 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.inspiredandroid.kai.ui.DarkColorScheme
-import com.inspiredandroid.kai.ui.LightColorScheme
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.init
 import nl.marc_apps.tts.TextToSpeechEngine
@@ -34,7 +30,6 @@ class MainActivity : ComponentActivity() {
         FileKit.init(this)
         autoStartDaemon()
 
-        val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         setContent {
             val isDarkTheme = isSystemInDarkTheme()
             LaunchedEffect(isDarkTheme) {
@@ -57,12 +52,6 @@ class MainActivity : ComponentActivity() {
                     },
                 )
             }
-            val colorScheme = when {
-                dynamicColor && isDarkTheme -> dynamicDarkColorScheme(LocalContext.current)
-                dynamicColor && !isDarkTheme -> dynamicLightColorScheme(LocalContext.current)
-                isDarkTheme -> DarkColorScheme
-                else -> LightColorScheme
-            }
             val navController = rememberNavController()
             // Defer TTS initialization until after the first frame
             var ttsReady by remember { mutableStateOf(false) }
@@ -74,7 +63,6 @@ class MainActivity : ComponentActivity() {
             }
             App(
                 navController = navController,
-                colorScheme = colorScheme,
                 textToSpeech = textToSpeech,
                 isKoinStarted = true,
                 onAppOpens = { appOpens ->
