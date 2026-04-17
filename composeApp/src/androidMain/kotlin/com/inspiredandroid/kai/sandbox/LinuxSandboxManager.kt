@@ -157,6 +157,35 @@ class LinuxSandboxManager(private val context: Context) {
      * The overlay dirs are pre-seeded from the rootfs on first call, then kept in
      * sync by proot binding them back into the chroot on every command execution.
      */
+    /**
+     * Force-wipes and re-seeds the dpkg/apt overlays from the clean rootfs.
+     * Call before any apt/dpkg operation to guarantee a non-interrupted dpkg state.
+     * This prevents "dpkg was interrupted, run dpkg --configure -a" errors that
+     * occur when a previous install was killed mid-run and left state in updates/.
+     */
+    private fun resetWritableOverlays(rootfsDir: File) {
+        val overlays = mapOf(
+            "dpkg-state" to "var/lib/dpkg",
+            "apt-cache" to "var/cache/apt",
+        )
+        overlays.forEach { (hostDir, rootfsRelPath) ->
+            val hostOverlay = File(sandboxDir, hostDir)
+            val rootfsSource = File(rootfsDir, rootfsRelPath)
+            // Always delete and re-seed — ensures clean non-interrupted dpkg state
+            hostOverlay.deleteRecursively()
+            if (rootfsSource.exists()) {
+                rootfsSource.copyRecursively(hostOverlay, overwrite = true)
+            } else {
+                hostOverlay.mkdirs()
+            }
+            // Make everything writable by the app process
+            hostOverlay.walkTopDown().forEach { f ->
+                if (f.isDirectory) { f.setWritable(true, false); f.setExecutable(true, false) }
+                else { f.setWritable(true, false); f.setReadable(true, false) }
+            }
+        }
+    }
+
     private fun bootstrapWritableOverlays(rootfsDir: File) {
         val overlays = mapOf(
             "dpkg-state" to "var/lib/dpkg",
@@ -202,13 +231,25 @@ class LinuxSandboxManager(private val context: Context) {
             try {
                 val executor = createProotExecutor()
 
-                // Re-ensure world-writable permissions every time — in case the sandbox
-                // was installed before this fix, or permissions were reset by the OS.
+                // Reset the dpkg/apt overlays to a clean state before every install.
+                // This wipes any interrupted dpkg runs that would cause:
+                //   "dpkg was interrupted, you must manually run dpkg --configure -a"
                 _state.value = SandboxState.Installing("Preparing package manager...")
-                downloader.makeWritable(File(rootfsPath))
+                resetWritableOverlays(File(rootfsPath))
 
-                // Remove any stale dpkg lock files before starting
-                executor.execute("rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock", timeoutSeconds = 10)
+                // Remove stale lock files (belt-and-suspenders after overlay reset)
+                executor.execute(
+                    "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend " +
+                        "/var/lib/dpkg/updates/* /var/cache/apt/archives/lock",
+                    timeoutSeconds = 10,
+                )
+
+                // Now run dpkg --configure -a — safe because the bind mount gives
+                // dpkg a fully writable /var/lib/dpkg, and updates/ is empty.
+                executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive dpkg --configure -a",
+                    timeoutSeconds = 60,
+                )
 
                 for (pkg in packages) {
                     ensureActive()
