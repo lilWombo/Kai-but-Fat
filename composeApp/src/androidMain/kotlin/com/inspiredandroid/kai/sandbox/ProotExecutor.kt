@@ -138,6 +138,12 @@ class ProotExecutor(
         "--bind=/sys",
         "--bind=$homePath:/root",
         "--bind=$tmpPath:/tmp",
+        // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.
+        // This bypasses Android's host-side permission restrictions on those paths:
+        // proot sees a freshly created, app-owned dir that it can write freely.
+        "--bind=$libDir/dpkg-state:/var/lib/dpkg",
+        "--bind=$libDir/apt-cache:/var/cache/apt",
+        "--bind=$libDir/apt-log:/var/log/apt",
         "-0",
         "-w", workingDir,
         "/bin/sh", "-c", command,

@@ -141,7 +141,13 @@ class RootfsDownloader {
             }
 
             when (typeFlag.toInt().toChar()) {
-                '5', 'D' -> outFile.mkdirs()
+                '5', 'D' -> {
+                    outFile.mkdirs()
+                    // Apply mode from tar header so dirs are writable by the app process.
+                    // Without this, dpkg cannot rename status→status-old (requires parent dir write).
+                    if (mode and 0b010_000_000 != 0) outFile.setWritable(true, false)
+                    if (mode and 0b001_000_000 != 0) outFile.setExecutable(true, false)
+                }
 
                 '2' -> {
                     outFile.parentFile?.mkdirs()
@@ -227,26 +233,48 @@ class RootfsDownloader {
     }
 
     fun makeWritable(rootfsDir: File) {
-        // setWritable(true, false) = world-writable: required because the tar
-        // extracts files owned by uid 0 (root) but our process runs as the app uid.
-        // proot -0 fakes root inside the chroot but the *host* kernel enforces the
-        // real ownership of files in files-dir, so dpkg cannot create backup files
-        // like /var/lib/dpkg/status-old unless the directory is world-writable.
+        // Walk the entire rootfs and make all dirs world-writable/executable and all
+        // files world-readable+writable. This is needed because:
+        // 1. The tar extraction may have applied restrictive modes from the tar header.
+        // 2. proot -0 fakes root *inside* the chroot, but the host Android kernel
+        //    still enforces real file permissions on the app's files-dir.
+        // 3. dpkg renames /var/lib/dpkg/status → status-old (needs dir write) and
+        //    writes directly to /var/lib/dpkg/status (needs file write).
         rootfsDir.walkTopDown().forEach { file ->
             if (file.isDirectory) {
-                file.setWritable(true, false)  // world-writable
-                file.setExecutable(true, false) // world-executable (required to enter dir)
+                file.setWritable(true, false)
+                file.setExecutable(true, false)
             } else if (file.isFile) {
-                file.setReadable(true, false)  // world-readable
+                file.setReadable(true, false)
+                file.setWritable(true, false) // dpkg writes to files inside /var/lib/dpkg/
             }
         }
-        // Explicitly ensure dpkg state dirs are writable — these are the specific
-        // paths dpkg writes to when installing/upgrading packages.
-        for (path in listOf("var/lib/dpkg", "var/cache/apt", "var/log/apt", "tmp")) {
+        // Belt-and-suspenders: explicitly mkdirs+chmod the exact paths dpkg needs.
+        for (path in listOf(
+            "var/lib/dpkg",
+            "var/lib/dpkg/info",
+            "var/lib/dpkg/updates",
+            "var/cache/apt",
+            "var/cache/apt/partial",
+            "var/cache/apt/archives",
+            "var/cache/apt/archives/partial",
+            "var/log/apt",
+            "var/log",
+            "tmp",
+            "run",
+            "run/lock",
+        )) {
             File(rootfsDir, path).let { dir ->
                 dir.mkdirs()
                 dir.setWritable(true, false)
                 dir.setExecutable(true, false)
+            }
+        }
+        // dpkg status file must be writable directly
+        File(rootfsDir, "var/lib/dpkg/status").let { f ->
+            if (f.exists()) {
+                f.setReadable(true, false)
+                f.setWritable(true, false)
             }
         }
     }

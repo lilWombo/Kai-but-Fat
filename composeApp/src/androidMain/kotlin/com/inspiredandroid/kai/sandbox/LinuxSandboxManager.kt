@@ -46,6 +46,7 @@ class LinuxSandboxManager(private val context: Context) {
             // Heal permissions on every app start — no-op if already correct,
             // fixes sandboxes installed before the world-writable fix.
             downloader.makeWritable(rootfs)
+            bootstrapWritableOverlays(rootfs)
             _state.value = SandboxState.Ready
         }
     }
@@ -129,6 +130,7 @@ class LinuxSandboxManager(private val context: Context) {
         _state.value = SandboxState.Installing("Configuring...")
         downloader.makeWritable(rootfsDir)
         downloader.writeResolvConf(rootfsDir)
+        bootstrapWritableOverlays(rootfsDir)
 
         val executor = createProotExecutor()
         executor.execute("apt-get update -qq", timeoutSeconds = 60)
@@ -143,6 +145,45 @@ class LinuxSandboxManager(private val context: Context) {
         val source = File(nativeLibDir, "libtalloc.so")
         if (source.exists()) {
             source.copyTo(tallocTarget, overwrite = true)
+        }
+    }
+
+    /**
+     * Creates writable host-side directories that proot will bind-mount over the
+     * rootfs dpkg/apt state paths. This is necessary because Android's filesystem
+     * may enforce restrictive permissions on tar-extracted root-owned paths, causing
+     * dpkg to fail when creating backup files (e.g. /var/lib/dpkg/status-old).
+     *
+     * The overlay dirs are pre-seeded from the rootfs on first call, then kept in
+     * sync by proot binding them back into the chroot on every command execution.
+     */
+    private fun bootstrapWritableOverlays(rootfsDir: File) {
+        val overlays = mapOf(
+            "dpkg-state" to "var/lib/dpkg",
+            "apt-cache" to "var/cache/apt",
+            "apt-log" to "var/log/apt",
+        )
+        overlays.forEach { (hostDir, rootfsRelPath) ->
+            val hostOverlay = File(sandboxDir, hostDir)
+            val rootfsSource = File(rootfsDir, rootfsRelPath)
+            if (!hostOverlay.exists()) {
+                // Seed from rootfs so dpkg/apt see their existing state
+                if (rootfsSource.exists()) {
+                    rootfsSource.copyRecursively(hostOverlay, overwrite = true)
+                } else {
+                    hostOverlay.mkdirs()
+                }
+            }
+            // Ensure the overlay is writable by the app process
+            hostOverlay.walkTopDown().forEach { f ->
+                if (f.isDirectory) {
+                    f.setWritable(true, false)
+                    f.setExecutable(true, false)
+                } else {
+                    f.setWritable(true, false)
+                    f.setReadable(true, false)
+                }
+            }
         }
     }
 
@@ -166,12 +207,8 @@ class LinuxSandboxManager(private val context: Context) {
                 _state.value = SandboxState.Installing("Preparing package manager...")
                 downloader.makeWritable(File(rootfsPath))
 
-                // dpkg --configure -a fixes any interrupted installs and removes
-                // lock files that cause "status-old: Permission denied" errors.
-                executor.execute(
-                    "DEBIAN_FRONTEND=noninteractive dpkg --configure -a",
-                    timeoutSeconds = 60,
-                )
+                // Remove any stale dpkg lock files before starting
+                executor.execute("rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock", timeoutSeconds = 10)
 
                 for (pkg in packages) {
                     ensureActive()
