@@ -64,8 +64,14 @@ class RootfsDownloader {
         try {
             connection = URL(url).openConnection() as HttpURLConnection
             connection.connectTimeout = 30_000
-            connection.readTimeout = 60_000
+            connection.readTimeout = 120_000
+            connection.instanceFollowRedirects = true
             connection.connect()
+
+            val responseCode = connection.responseCode
+            if (responseCode !in 200..299) {
+                throw java.io.IOException("Download failed: HTTP $responseCode")
+            }
 
             val totalBytes = connection.contentLengthLong
             var downloadedBytes = 0L
@@ -84,6 +90,15 @@ class RootfsDownloader {
                     }
                 }
             }
+        } catch (e: java.net.UnknownHostException) {
+            throw java.io.IOException("No internet connection. Please check your network and try again.", e)
+        } catch (e: java.net.SocketTimeoutException) {
+            throw java.io.IOException("Download timed out. Please check your connection and try again.", e)
+        } catch (e: java.io.IOException) {
+            // Re-throw with the URL stripped out if it's the only content of the message
+            val msg = e.message ?: "Download failed"
+            if (msg.startsWith("http")) throw java.io.IOException("Download failed. Please check your internet connection.", e)
+            throw e
         } finally {
             connection?.disconnect()
         }

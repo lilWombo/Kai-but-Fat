@@ -74,7 +74,7 @@ class AndroidSandboxController : SandboxController {
 
         is SandboxState.Error -> SandboxStatus(
             error = true,
-            statusText = "Error: ${state.message}",
+            statusText = "Error: ${sanitizeErrorMessage(state.message)}",
         )
     }
 
@@ -142,6 +142,15 @@ class AndroidSandboxController : SandboxController {
         }
         return ProotCommandHandle(handle)
     }
+}
+
+
+private fun sanitizeErrorMessage(raw: String): String {
+    // Strip bare URLs from error messages — show them only to logcat, not the user
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+        return "Download failed. Please check your internet connection."
+    }
+    return raw.take(120)
 }
 
 private const val SANDBOX_NOT_READY = "Sandbox is not ready"
