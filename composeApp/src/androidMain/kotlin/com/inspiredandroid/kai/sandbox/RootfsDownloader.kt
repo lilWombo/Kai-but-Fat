@@ -227,9 +227,26 @@ class RootfsDownloader {
     }
 
     fun makeWritable(rootfsDir: File) {
+        // setWritable(true, false) = world-writable: required because the tar
+        // extracts files owned by uid 0 (root) but our process runs as the app uid.
+        // proot -0 fakes root inside the chroot but the *host* kernel enforces the
+        // real ownership of files in files-dir, so dpkg cannot create backup files
+        // like /var/lib/dpkg/status-old unless the directory is world-writable.
         rootfsDir.walkTopDown().forEach { file ->
-            if (file.isDirectory && !file.canWrite()) {
-                file.setWritable(true, true)
+            if (file.isDirectory) {
+                file.setWritable(true, false)  // world-writable
+                file.setExecutable(true, false) // world-executable (required to enter dir)
+            } else if (file.isFile) {
+                file.setReadable(true, false)  // world-readable
+            }
+        }
+        // Explicitly ensure dpkg state dirs are writable — these are the specific
+        // paths dpkg writes to when installing/upgrading packages.
+        for (path in listOf("var/lib/dpkg", "var/cache/apt", "var/log/apt", "tmp")) {
+            File(rootfsDir, path).let { dir ->
+                dir.mkdirs()
+                dir.setWritable(true, false)
+                dir.setExecutable(true, false)
             }
         }
     }

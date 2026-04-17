@@ -26,19 +26,9 @@ val popularMcpServers = listOf(
         description = "Prediction market data and odds",
     ),
     PopularMcpServer(
-        name = "Fetch",
-        url = "https://remote.mcpservers.org/fetch/mcp",
-        description = "Fetch web content and convert HTML to markdown",
-    ),
-    PopularMcpServer(
         name = "DeepWiki",
         url = "https://mcp.deepwiki.com/mcp",
         description = "AI-powered docs for any GitHub repo",
-    ),
-    PopularMcpServer(
-        name = "Sequential Thinking",
-        url = "https://remote.mcpservers.org/sequentialthinking/mcp",
-        description = "Structured step-by-step problem-solving",
     ),
     PopularMcpServer(
         name = "Find-A-Domain",
@@ -61,33 +51,33 @@ val popularMcpServers = listOf(
         description = "Global weather forecasts and air quality",
     ),
     PopularMcpServer(
-        name = "Brave Search",
-        url = "https://remote.mcpservers.org/brave-search/mcp",
-        description = "Privacy-focused web search with clean results",
-    ),
-    PopularMcpServer(
-        name = "HackerNews",
-        url = "https://remote.mcpservers.org/hackernews/mcp",
-        description = "Top stories, comments, and jobs from Hacker News",
-    ),
-    PopularMcpServer(
         name = "Exa Search",
         url = "https://mcp.exa.ai/mcp",
         description = "AI-powered neural search across the web and research papers",
     ),
     PopularMcpServer(
-        name = "Playwright Browser",
-        url = "https://remote.mcpservers.org/playwright/mcp",
-        description = "Full browser automation — screenshots, scraping, form filling",
+        name = "Cloudflare Docs",
+        url = "https://mcp.cloudflare.com/mcp",
+        description = "Search Cloudflare developer documentation and APIs",
     ),
     PopularMcpServer(
-        name = "Persistent Memory",
-        url = "https://remote.mcpservers.org/memory/mcp",
-        description = "Key-value memory that persists across conversations",
+        name = "Figma",
+        url = "https://mcp.figma.com/mcp",
+        description = "Read Figma files, components and design tokens",
     ),
     PopularMcpServer(
-        name = "Time & Timezone",
-        url = "https://remote.mcpservers.org/time/mcp",
-        description = "Current time, timezone conversions, date arithmetic",
+        name = "Notion",
+        url = "https://mcp.notion.com/mcp",
+        description = "Read and write Notion pages and databases",
+    ),
+    PopularMcpServer(
+        name = "Supabase",
+        url = "https://mcp.supabase.com/mcp",
+        description = "Manage Supabase projects, tables and queries",
+    ),
+    PopularMcpServer(
+        name = "Linear",
+        url = "https://mcp.linear.app/mcp",
+        description = "Create and manage Linear issues, projects and cycles",
     ),
 )

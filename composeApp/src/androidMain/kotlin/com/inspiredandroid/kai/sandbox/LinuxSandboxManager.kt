@@ -43,6 +43,9 @@ class LinuxSandboxManager(private val context: Context) {
         val rootfs = File(sandboxDir, "rootfs")
         val proot = File(prootPath)
         if (rootfs.isDirectory && proot.exists() && proot.canExecute()) {
+            // Heal permissions on every app start — no-op if already correct,
+            // fixes sandboxes installed before the world-writable fix.
+            downloader.makeWritable(rootfs)
             _state.value = SandboxState.Ready
         }
     }
@@ -157,10 +160,29 @@ class LinuxSandboxManager(private val context: Context) {
         currentJob = scope.launch {
             try {
                 val executor = createProotExecutor()
+
+                // Re-ensure world-writable permissions every time — in case the sandbox
+                // was installed before this fix, or permissions were reset by the OS.
+                _state.value = SandboxState.Installing("Preparing package manager...")
+                downloader.makeWritable(File(rootfsPath))
+
+                // dpkg --configure -a fixes any interrupted installs and removes
+                // lock files that cause "status-old: Permission denied" errors.
+                executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive dpkg --configure -a",
+                    timeoutSeconds = 60,
+                )
+
                 for (pkg in packages) {
                     ensureActive()
                     _state.value = SandboxState.Installing("Installing $pkg...")
-                    val result = executor.execute("DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $pkg", timeoutSeconds = 120)
+                    val result = executor.execute(
+                        "DEBIAN_FRONTEND=noninteractive apt-get install -y " +
+                            "--no-install-recommends " +
+                            "-o Dpkg::Options::=\"--force-confdef\" " +
+                            "-o Dpkg::Options::=\"--force-confold\" $pkg",
+                        timeoutSeconds = 120,
+                    )
                     ensureActive()
                     val success = result["success"] as? Boolean ?: false
                     if (!success) {
