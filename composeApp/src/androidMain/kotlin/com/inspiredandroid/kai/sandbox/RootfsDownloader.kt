@@ -43,10 +43,10 @@ class RootfsDownloader {
     fun getDownloadUrl(arch: String): String {
         val branch = when (arch) {
             "aarch64" -> "dist-arm64v8"
-            "x86_64"  -> "dist-amd64"
-            "armhf"   -> "dist-arm32v7"
-            "x86"     -> "dist-i386"
-            else      -> "dist-arm64v8"
+            "x86_64" -> "dist-amd64"
+            "armhf" -> "dist-arm32v7"
+            "x86" -> "dist-i386"
+            else -> "dist-arm64v8"
         }
         return "$DEBIAN_BASE_URL/$branch/$DEBIAN_RELEASE/slim/rootfs.tar.xz"
     }
