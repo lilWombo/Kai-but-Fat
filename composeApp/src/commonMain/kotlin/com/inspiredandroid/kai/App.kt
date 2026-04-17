@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.inspiredandroid.kai.ui.toColorScheme
 import com.inspiredandroid.kai.ui.AppTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -40,8 +39,6 @@ import com.inspiredandroid.kai.tools.CalendarPermissionController
 import com.inspiredandroid.kai.tools.NotificationPermissionController
 import com.inspiredandroid.kai.tools.SetupCalendarPermissionHandler
 import com.inspiredandroid.kai.tools.SetupNotificationPermissionHandler
-import com.inspiredandroid.kai.ui.DarkColorScheme
-import com.inspiredandroid.kai.ui.LightColorScheme
 import com.inspiredandroid.kai.ui.Theme
 import com.inspiredandroid.kai.ui.chat.ChatScreen
 import com.inspiredandroid.kai.ui.chat.ChatViewModel
@@ -70,11 +67,6 @@ object Settings
 @Composable
 fun App(
     navController: NavHostController,
-    colorScheme: ColorScheme = if (isSystemInDarkTheme()) {
-        DarkColorScheme
-    } else {
-        LightColorScheme
-    },
     textToSpeech: TextToSpeechInstance? = null,
     isKoinStarted: Boolean = false,
     onAppOpens: ((Int) -> Unit)? = null,
@@ -91,14 +83,14 @@ fun App(
     // Reuse global Koin if already started (Android Application class),
     // otherwise create a new instance (iOS, Desktop, Wasm).
     if (isKoinStarted) {
-        AppContent(navController, colorScheme, textToSpeech, onAppOpens)
+        AppContent(navController, textToSpeech, onAppOpens)
     } else {
         KoinApplication(
             application = {
                 modules(appModule)
             },
         ) {
-            AppContent(navController, colorScheme, textToSpeech, onAppOpens)
+            AppContent(navController, textToSpeech, onAppOpens)
         }
     }
 }
@@ -106,16 +98,16 @@ fun App(
 @Composable
 private fun AppContent(
     navController: NavHostController,
-    colorScheme: ColorScheme,
     textToSpeech: TextToSpeechInstance?,
     onAppOpens: ((Int) -> Unit)?,
 ) {
+    val appSettings = koinInject<AppSettings>()
+    val isSystemDark = isSystemInDarkTheme()
+    val appTheme by appSettings.uiThemeFlow.collectAsState()
+    val resolvedColorScheme = appTheme.toColorScheme(isSystemDark)
+
     // Track app opens after Koin is initialized
     onAppOpens?.let { callback ->
-        val appSettings = koinInject<AppSettings>()
-        val isSystemDark = isSystemInDarkTheme()
-        val appTheme by appSettings.uiThemeFlow.collectAsState()
-        val resolvedColorScheme = appTheme.toColorScheme(isSystemDark)
         LaunchedEffect(Unit) {
             callback(appSettings.trackAppOpen())
         }
@@ -140,8 +132,7 @@ private fun AppContent(
         }
     }
 
-    val appSettingsForScale = koinInject<AppSettings>()
-    val uiScale by appSettingsForScale.uiScaleFlow.collectAsState()
+    val uiScale by appSettings.uiScaleFlow.collectAsState()
     val defaultDensity = LocalDensity.current
     val scaledDensity = remember(defaultDensity, uiScale) {
         Density(defaultDensity.density * uiScale, defaultDensity.fontScale)
