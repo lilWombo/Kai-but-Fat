@@ -2,8 +2,6 @@ package com.inspiredandroid.kai.sandbox
 
 import android.content.Context
 import android.os.Build
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +33,7 @@ class LinuxSandboxManager(private val context: Context) {
     val prootPath: String get() = File(context.applicationInfo.nativeLibraryDir, "libproot.so").absolutePath
     val nativeLibDir: String get() = context.applicationInfo.nativeLibraryDir
 
-    private val downloader = RootfsDownloader(HttpClient(Android))
+    private val downloader = RootfsDownloader()
 
     init {
         checkExistingInstallation()

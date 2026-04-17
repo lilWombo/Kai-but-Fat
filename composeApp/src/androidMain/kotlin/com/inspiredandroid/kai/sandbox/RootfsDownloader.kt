@@ -1,15 +1,15 @@
+// // composeApp/src/androidMain/kotlin/com/inspiredandroid/kai/sandbox/RootfsDownloader.kt
 package com.inspiredandroid.kai.sandbox
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.prepareGet
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.contentLength
-import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 // Debian bookworm-slim rootfs from the official debuerreotype GitHub repository.
 // These are the same tarballs used by the official Debian Docker images.
@@ -27,7 +27,7 @@ private const val TAR_TYPE_OFFSET = 156
 private const val TAR_LINK_OFFSET = 157
 private const val TAR_PREFIX_OFFSET = 345
 
-class RootfsDownloader(private val httpClient: HttpClient) {
+class RootfsDownloader {
 
     /**
      * Returns the Debian bookworm-slim rootfs URL for the given architecture.
@@ -58,25 +58,34 @@ class RootfsDownloader(private val httpClient: HttpClient) {
         arch: String,
         targetFile: File,
         onProgress: (Float) -> Unit,
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val url = getDownloadUrl(arch)
-        httpClient.prepareGet(url).execute { response ->
-            val totalBytes = response.contentLength() ?: -1L
-            val channel = response.bodyAsChannel()
-            val buffer = ByteArray(BUFFER_SIZE)
+        var connection: HttpURLConnection? = null
+        try {
+            connection = URL(url).openConnection() as HttpURLConnection
+            connection.connectTimeout = 30_000
+            connection.readTimeout = 60_000
+            connection.connect()
+
+            val totalBytes = connection.contentLengthLong
             var downloadedBytes = 0L
+            val buffer = ByteArray(BUFFER_SIZE)
 
             FileOutputStream(targetFile).use { output ->
-                while (!channel.isClosedForRead) {
-                    val bytesRead = channel.readAvailable(buffer)
-                    if (bytesRead <= 0) break
-                    output.write(buffer, 0, bytesRead)
-                    downloadedBytes += bytesRead
-                    if (totalBytes > 0) {
-                        onProgress(downloadedBytes.toFloat() / totalBytes)
+                connection.inputStream.use { input ->
+                    while (true) {
+                        val bytesRead = input.read(buffer)
+                        if (bytesRead < 0) break
+                        output.write(buffer, 0, bytesRead)
+                        downloadedBytes += bytesRead
+                        if (totalBytes > 0) {
+                            onProgress(downloadedBytes.toFloat() / totalBytes)
+                        }
                     }
                 }
             }
+        } finally {
+            connection?.disconnect()
         }
     }
 
