@@ -3,7 +3,6 @@ package com.inspiredandroid.kai.sandbox
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.apache.commons.compress.compressors.xz.XZCompressorInputStream
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -48,11 +47,11 @@ class RootfsDownloader {
             "x86" -> "dist-i386"
             else -> "dist-arm64v8"
         }
-        return "$DEBIAN_BASE_URL/$branch/$DEBIAN_RELEASE/slim/rootfs.tar.xz"
+        return "$DEBIAN_BASE_URL/$branch/$DEBIAN_RELEASE/slim/oci/blobs/rootfs.tar.gz"
     }
 
     /** Expected filename extension for the Debian rootfs archive. */
-    val archiveExtension: String get() = "tar.xz"
+    val archiveExtension: String get() = "tar.gz"
 
     suspend fun download(
         arch: String,
@@ -104,16 +103,13 @@ class RootfsDownloader {
         }
     }
 
-    /** Extract a .tar.xz archive (Debian bookworm-slim format). */
-    fun extractTarXz(tarXzFile: File, targetDir: File) {
+    /** Extract a .tar.gz archive (Debian bookworm-slim OCI format). */
+    fun extractTarGz(tarGzFile: File, targetDir: File) {
         targetDir.mkdirs()
-        XZCompressorInputStream(BufferedInputStream(FileInputStream(tarXzFile))).use { xzStream ->
-            extractTar(xzStream, targetDir)
+        java.util.zip.GZIPInputStream(BufferedInputStream(FileInputStream(tarGzFile))).use { gzStream ->
+            extractTar(gzStream, targetDir)
         }
     }
-
-    /** Kept for backwards-compatibility if any callers still reference it. */
-    fun extractTarGz(tarGzFile: File, targetDir: File) = extractTarXz(tarGzFile, targetDir)
 
     private fun extractTar(inputStream: java.io.InputStream, targetDir: File) {
         val headerBuffer = ByteArray(TAR_BLOCK_SIZE)

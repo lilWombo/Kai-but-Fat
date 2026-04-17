@@ -75,7 +75,7 @@ class LinuxSandboxManager(private val context: Context) {
         currentJob?.cancel()
         currentJob = null
         // Clean up partial downloads
-        File(sandboxDir, "rootfs.tar.xz").delete()
+        File(sandboxDir, "rootfs.tar.gz").delete()
         // Determine correct state based on what exists
         val rootfs = File(sandboxDir, "rootfs")
         if (rootfs.isDirectory && File(prootPath).exists()) {
@@ -108,7 +108,7 @@ class LinuxSandboxManager(private val context: Context) {
         // Download rootfs
         val rootfsDir = File(sandboxDir, "rootfs")
         if (!rootfsDir.isDirectory) {
-            val tarGzFile = File(sandboxDir, "rootfs.tar.xz")
+            val tarGzFile = File(sandboxDir, "rootfs.tar.gz")
             try {
                 _state.value = SandboxState.Downloading(0f)
                 downloader.download(arch, tarGzFile) { progress ->
@@ -116,7 +116,7 @@ class LinuxSandboxManager(private val context: Context) {
                 }
 
                 _state.value = SandboxState.Extracting
-                downloader.extractTarXz(tarGzFile, rootfsDir)
+                downloader.extractTarGz(tarGzFile, rootfsDir)
             } finally {
                 tarGzFile.delete()
             }

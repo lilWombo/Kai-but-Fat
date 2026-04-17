@@ -1,5 +1,7 @@
 package com.inspiredandroid.kai.data
 
+import com.inspiredandroid.kai.ui.AppTheme
+
 import com.inspiredandroid.kai.inference.DownloadError
 import com.inspiredandroid.kai.inference.DownloadedModel
 import com.inspiredandroid.kai.inference.EngineState
@@ -100,6 +102,10 @@ interface DataRepository {
     // Linux Sandbox
     fun isSandboxEnabled(): Boolean
     fun setSandboxEnabled(enabled: Boolean)
+
+    // Theme
+    fun getAppTheme(): AppTheme
+    fun setAppTheme(theme: AppTheme)
 
     // Heartbeat
     fun getHeartbeatConfig(): HeartbeatConfig

@@ -1,5 +1,7 @@
 package com.inspiredandroid.kai.ui.settings
 
+import com.inspiredandroid.kai.ui.AppTheme
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inspiredandroid.kai.DaemonController
@@ -114,6 +116,8 @@ class SettingsViewModel(
         uiScale = dataRepository.getUiScale(),
         onChangeUiScale = ::onChangeUiScale,
         showUiScale = isDesktopPlatform,
+        appTheme = dataRepository.getAppTheme(),
+        onChangeAppTheme = ::onChangeAppTheme,
         mcpServers = buildMcpServerEntries().toImmutableList(),
         onAddMcpServer = ::onAddMcpServer,
         onRemoveMcpServer = ::onRemoveMcpServer,
@@ -473,6 +477,11 @@ class SettingsViewModel(
                 .filter { it.service.isOnDevice }
                 .forEach { checkConnection(it.instanceId, it.service) }
         }
+    }
+
+    private fun onChangeAppTheme(theme: AppTheme) {
+        dataRepository.setAppTheme(theme)
+        _state.update { it.copy(appTheme = theme) }
     }
 
     private fun onChangeUiScale(scale: Float) {

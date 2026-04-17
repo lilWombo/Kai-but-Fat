@@ -49,6 +49,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import com.inspiredandroid.kai.ui.AppTheme
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -1535,6 +1538,31 @@ private fun GeneralContent(uiState: SettingsUiState) {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
+                    SettingsCard {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "Theme",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(AppTheme.entries.toList()) { theme ->
+                                    FilterChip(
+                                        selected = uiState.appTheme == theme,
+                                        onClick = { uiState.onChangeAppTheme(theme) },
+                                        label = {
+                                            Text(
+                                                text = theme.displayName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
                     if (uiState.showUiScale) {
                         SettingsCard {
                             UiScaleSection(

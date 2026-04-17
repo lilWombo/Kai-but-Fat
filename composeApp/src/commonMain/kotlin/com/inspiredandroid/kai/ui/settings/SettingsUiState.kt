@@ -1,5 +1,7 @@
 package com.inspiredandroid.kai.ui.settings
 
+import com.inspiredandroid.kai.ui.AppTheme
+
 import androidx.compose.runtime.Immutable
 import com.inspiredandroid.kai.data.EmailAccount
 import com.inspiredandroid.kai.data.HeartbeatLogEntry
@@ -105,6 +107,8 @@ data class SettingsUiState(
     val uiScale: Float = 1.0f,
     val onChangeUiScale: (Float) -> Unit = {},
     val showUiScale: Boolean = false,
+    val appTheme: AppTheme = AppTheme.DEFAULT,
+    val onChangeAppTheme: (AppTheme) -> Unit = {},
     val mcpServers: ImmutableList<McpServerUiState> = persistentListOf(),
     val onAddMcpServer: (String, String, Map<String, String>) -> Unit = { _, _, _ -> },
     val onRemoveMcpServer: (String) -> Unit = {},

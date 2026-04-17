@@ -2,6 +2,8 @@
 
 package com.inspiredandroid.kai.data
 
+import com.inspiredandroid.kai.ui.AppTheme
+
 import com.inspiredandroid.kai.compressImageBytes
 import com.inspiredandroid.kai.formatFileSize
 import com.inspiredandroid.kai.getAvailableTools
@@ -1754,6 +1756,12 @@ class RemoteDataRepository(
 
     override fun setSandboxEnabled(enabled: Boolean) {
         appSettings.setSandboxEnabled(enabled)
+    }
+
+    override fun getAppTheme(): AppTheme = appSettings.getAppTheme()
+
+    override fun setAppTheme(theme: AppTheme) {
+        appSettings.setAppTheme(theme)
     }
 
     override fun getHeartbeatConfig(): HeartbeatConfig = heartbeatManager.getConfig()

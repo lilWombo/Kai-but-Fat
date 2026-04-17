@@ -1,5 +1,7 @@
 package com.inspiredandroid.kai.data
 
+import com.inspiredandroid.kai.ui.AppTheme
+
 import com.inspiredandroid.kai.defaultUiScale
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -460,6 +462,19 @@ class AppSettings(private val settings: Settings) {
 
     fun setSandboxEnabled(enabled: Boolean) {
         settings.putBoolean(KEY_SANDBOX_ENABLED, enabled)
+    }
+
+    val uiThemeFlow: kotlinx.coroutines.flow.MutableStateFlow<AppTheme> =
+        kotlinx.coroutines.flow.MutableStateFlow(getAppTheme())
+
+    fun getAppTheme(): AppTheme {
+        val name = settings.getString(KEY_APP_THEME, AppTheme.DEFAULT.name)
+        return AppTheme.entries.firstOrNull { it.name == name } ?: AppTheme.DEFAULT
+    }
+
+    fun setAppTheme(theme: AppTheme) {
+        settings.putString(KEY_APP_THEME, theme.name)
+        uiThemeFlow.value = theme
     }
 
     fun getTavilyApiKey(): String = settings.getString(KEY_TAVILY_API_KEY, "")
@@ -1064,6 +1079,7 @@ class AppSettings(private val settings: Settings) {
         const val KEY_MODEL_CONTEXT_PREFIX = "model_context_"
 
         const val KEY_SANDBOX_ENABLED = "sandbox_enabled"
+        const val KEY_APP_THEME = "app_theme"
 
         const val KEY_TAVILY_API_KEY = "tavily_api_key"
         const val KEY_FIRST_RUN_SETUP_COMPLETE = "first_run_setup_complete"

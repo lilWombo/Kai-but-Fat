@@ -58,6 +58,97 @@ val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF000000),
 )
 
+
+/** Midnight Ocean — deep navy + cyan accent */
+val MidnightOceanColorScheme = darkColorScheme(
+    primary = Color(0xFF00E5FF),
+    onPrimary = Color(0xFF001F2A),
+    secondary = Color(0xFF006E7F),
+    tertiary = Color(0xFF0097A7),
+    surface = Color(0xFF0D1B2A),
+    surfaceVariant = Color(0xFF112233),
+    background = Color(0xFF060D14),
+    onBackground = Color(0xFFE0F7FA),
+    onSurface = Color(0xFFB2EBF2),
+    onSurfaceVariant = Color(0xFF80DEEA),
+)
+
+/** Ember — charcoal + warm amber */
+val EmberColorScheme = darkColorScheme(
+    primary = Color(0xFFFFB300),
+    onPrimary = Color(0xFF1A0D00),
+    secondary = Color(0xFFE65100),
+    tertiary = Color(0xFFBF360C),
+    surface = Color(0xFF1E1610),
+    surfaceVariant = Color(0xFF252015),
+    background = Color(0xFF120E08),
+    onBackground = Color(0xFFFFF8F0),
+    onSurface = Color(0xFFFFE0B2),
+    onSurfaceVariant = Color(0xFFFFCC80),
+)
+
+/** Forest — dark green + lime accent */
+val ForestColorScheme = darkColorScheme(
+    primary = Color(0xFF69F0AE),
+    onPrimary = Color(0xFF00210F),
+    secondary = Color(0xFF00C853),
+    tertiary = Color(0xFF1B5E20),
+    surface = Color(0xFF0F1F14),
+    surfaceVariant = Color(0xFF142819),
+    background = Color(0xFF08120B),
+    onBackground = Color(0xFFE8F5E9),
+    onSurface = Color(0xFFC8E6C9),
+    onSurfaceVariant = Color(0xFFA5D6A7),
+)
+
+/** Rose Gold — near-black + blush pink */
+val RoseGoldColorScheme = darkColorScheme(
+    primary = Color(0xFFFF80AB),
+    onPrimary = Color(0xFF1A0011),
+    secondary = Color(0xFFF06292),
+    tertiary = Color(0xFFAD1457),
+    surface = Color(0xFF1E1218),
+    surfaceVariant = Color(0xFF26171E),
+    background = Color(0xFF120A0F),
+    onBackground = Color(0xFFFCE4EC),
+    onSurface = Color(0xFFF8BBD0),
+    onSurfaceVariant = Color(0xFFF48FB1),
+)
+
+/** Slate — cool blue-grey + indigo */
+val SlateColorScheme = darkColorScheme(
+    primary = Color(0xFF7986CB),
+    onPrimary = Color(0xFF0D0F1E),
+    secondary = Color(0xFF5C6BC0),
+    tertiary = Color(0xFF3949AB),
+    surface = Color(0xFF1A1C2E),
+    surfaceVariant = Color(0xFF20223A),
+    background = Color(0xFF0F101C),
+    onBackground = Color(0xFFE8EAF6),
+    onSurface = Color(0xFFC5CAE9),
+    onSurfaceVariant = Color(0xFF9FA8DA),
+)
+
+enum class AppTheme(val displayName: String) {
+    DEFAULT("Default"),
+    MIDNIGHT_OCEAN("Midnight Ocean"),
+    EMBER("Ember"),
+    FOREST("Forest"),
+    ROSE_GOLD("Rose Gold"),
+    SLATE("Slate"),
+    LIGHT("Light"),
+}
+
+fun AppTheme.toColorScheme(isSystemDark: Boolean): ColorScheme = when (this) {
+    AppTheme.DEFAULT        -> if (isSystemDark) DarkColorScheme else LightColorScheme
+    AppTheme.MIDNIGHT_OCEAN -> MidnightOceanColorScheme
+    AppTheme.EMBER          -> EmberColorScheme
+    AppTheme.FOREST         -> ForestColorScheme
+    AppTheme.ROSE_GOLD      -> RoseGoldColorScheme
+    AppTheme.SLATE          -> SlateColorScheme
+    AppTheme.LIGHT          -> LightColorScheme
+}
+
 @Composable
 fun outlineTextFieldColors() = OutlinedTextFieldDefaults.colors()
 

@@ -4,6 +4,8 @@ package com.inspiredandroid.kai
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import com.inspiredandroid.kai.ui.toColorScheme
+import com.inspiredandroid.kai.ui.AppTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -111,6 +113,9 @@ private fun AppContent(
     // Track app opens after Koin is initialized
     onAppOpens?.let { callback ->
         val appSettings = koinInject<AppSettings>()
+        val isSystemDark = isSystemInDarkTheme()
+        val appTheme by appSettings.uiThemeFlow.collectAsState()
+        val resolvedColorScheme = appTheme.toColorScheme(isSystemDark)
         LaunchedEffect(Unit) {
             callback(appSettings.trackAppOpen())
         }
@@ -143,7 +148,7 @@ private fun AppContent(
     }
 
     CompositionLocalProvider(LocalDensity provides scaledDensity) {
-        Theme(colorScheme = colorScheme) {
+        Theme(colorScheme = resolvedColorScheme) {
             val chatViewModel: ChatViewModel = koinViewModel()
             val showTabBar = !isMobilePlatform
             val currentBackStackEntry by navController.currentBackStackEntryAsState()

@@ -115,4 +115,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add -A
           git commit -m "Auto-fix: spotlessApply and updateScreenshots [skip ci]"
+          git pull --rebase origin ${{ github.ref_name }}
           git push
