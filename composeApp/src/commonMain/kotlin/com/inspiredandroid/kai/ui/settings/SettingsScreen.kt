@@ -448,6 +448,12 @@ fun SettingsScreenContent(
                                         showAddMcpServerDialog = filteredUiState.showAddMcpServerDialog,
                                         onShowAddMcpServerDialog = filteredUiState.onShowAddMcpServerDialog,
                                         onAddPopularMcpServer = filteredUiState.onAddPopularMcpServer,
+                                        tavilyApiKey = filteredUiState.tavilyApiKey,
+                                        onChangeTavilyApiKey = filteredUiState.onChangeTavilyApiKey,
+                                        braveApiKey = filteredUiState.braveApiKey,
+                                        onChangeBraveApiKey = filteredUiState.onChangeBraveApiKey,
+                                        serpApiKey = filteredUiState.serpApiKey,
+                                        onChangeSerpApiKey = filteredUiState.onChangeSerpApiKey,
                                     )
                                 }
 
@@ -1787,6 +1793,65 @@ private fun IntegrationsContent(
                 }
             }
         }
+
+        SettingsCard {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Suggested Automations",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = "Enable these in Tools + MCP to unlock AI-driven automations.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                SuggestionItem(emoji = "\uD83D\uDD14", title = "Smart Notifications",
+                    description = "AI monitors topics and pushes alerts when relevant news breaks. Needs: Brave Search + Notifications tool.")
+                SuggestionItem(emoji = "\uD83D\uDCC5", title = "Calendar Assistant",
+                    description = "Auto-creates calendar events from conversations and emails. Needs: Calendar tool + Email tool.")
+                SuggestionItem(emoji = "\uD83D\uDDBC\uFE0F", title = "Image Research",
+                    description = "Find, compare, and summarise images from any search query. Needs: Brave Search or SerpApi (image mode).")
+                SuggestionItem(emoji = "\uD83D\uDC0D", title = "Code Runner",
+                    description = "Execute Python, Node.js, or shell scripts inline. Needs: Debian Linux sandbox + Shell Command tool.")
+                SuggestionItem(emoji = "\uD83E\uDDE0", title = "Persistent Memory Agent",
+                    description = "AI remembers facts across sessions and surfaces them proactively. Needs: Memory MCP + Heartbeat.")
+                SuggestionItem(emoji = "\uD83D\uDCF0", title = "Daily Digest",
+                    description = "Scheduled morning briefing from HackerNews + Brave Search. Needs: HackerNews MCP + Scheduling tool.")
+                SuggestionItem(emoji = "\uD83C\uDF10", title = "Web Scraper",
+                    description = "Fetch, parse, and summarise any URL. Needs: Fetch MCP or Playwright Browser MCP.")
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuggestionItem(
+    emoji: String,
+    title: String,
+    description: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(text = emoji, style = MaterialTheme.typography.titleLarge)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -2023,6 +2088,12 @@ private fun ToolsContent(
     showAddMcpServerDialog: Boolean,
     onShowAddMcpServerDialog: (Boolean) -> Unit,
     onAddPopularMcpServer: (PopularMcpServer) -> Unit,
+    tavilyApiKey: String = "",
+    onChangeTavilyApiKey: (String) -> Unit = {},
+    braveApiKey: String = "",
+    onChangeBraveApiKey: (String) -> Unit = {},
+    serpApiKey: String = "",
+    onChangeSerpApiKey: (String) -> Unit = {},
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // MCP Servers section
@@ -2085,6 +2156,89 @@ private fun ToolsContent(
                 }
             }
         }
+
+        Spacer(Modifier.height(24.dp))
+
+        SearchApiKeysCard(
+            tavilyApiKey = tavilyApiKey,
+            onChangeTavilyApiKey = onChangeTavilyApiKey,
+            braveApiKey = braveApiKey,
+            onChangeBraveApiKey = onChangeBraveApiKey,
+            serpApiKey = serpApiKey,
+            onChangeSerpApiKey = onChangeSerpApiKey,
+        )
+    }
+}
+
+@Composable
+private fun SearchApiKeysCard(
+    tavilyApiKey: String,
+    onChangeTavilyApiKey: (String) -> Unit,
+    braveApiKey: String,
+    onChangeBraveApiKey: (String) -> Unit,
+    serpApiKey: String,
+    onChangeSerpApiKey: (String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "Search API Keys",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                text = "Optional keys for enhanced search tools. Stored encrypted on-device.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SearchApiKeyRow(label = "Tavily", placeholder = "tvly-…",
+                value = tavilyApiKey, onValueChange = onChangeTavilyApiKey)
+            SearchApiKeyRow(label = "Brave Search", placeholder = "BSA…",
+                value = braveApiKey, onValueChange = onChangeBraveApiKey)
+            SearchApiKeyRow(label = "SerpApi (Google)", placeholder = "Enter SerpApi key",
+                value = serpApiKey, onValueChange = onChangeSerpApiKey)
+        }
+    }
+}
+
+@Composable
+private fun SearchApiKeyRow(
+    label: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    var visible by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(placeholder) },
+            singleLine = true,
+            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { visible = !visible }) {
+                    Icon(
+                        imageVector = if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = if (visible) "Hide key" else "Show key",
+                    )
+                }
+            },
+        )
     }
 }
 
