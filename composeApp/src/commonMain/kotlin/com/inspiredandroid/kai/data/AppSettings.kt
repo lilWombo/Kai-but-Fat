@@ -492,6 +492,21 @@ class AppSettings(private val settings: Settings) {
         settings.putString(KEY_SERP_API_KEY, key)
     }
 
+    fun getExaApiKey(): String = settings.getString(KEY_EXA_API_KEY, "")
+    fun setExaApiKey(key: String) {
+        settings.putString(KEY_EXA_API_KEY, key)
+    }
+
+    fun getGitHubToken(): String = settings.getString(KEY_GITHUB_TOKEN, "")
+    fun setGitHubToken(key: String) {
+        settings.putString(KEY_GITHUB_TOKEN, key)
+    }
+
+    fun getFirecrawlApiKey(): String = settings.getString(KEY_FIRECRAWL_API_KEY, "")
+    fun setFirecrawlApiKey(key: String) {
+        settings.putString(KEY_FIRECRAWL_API_KEY, key)
+    }
+
     fun isFirstRunSetupComplete(): Boolean = settings.getBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, false)
     fun setFirstRunSetupComplete(complete: Boolean) {
         settings.putBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, complete)
@@ -1094,6 +1109,9 @@ class AppSettings(private val settings: Settings) {
         const val KEY_TAVILY_API_KEY = "tavily_api_key"
         const val KEY_BRAVE_API_KEY = "brave_api_key"
         const val KEY_SERP_API_KEY = "serp_api_key"
+        const val KEY_EXA_API_KEY = "exa_api_key"
+        const val KEY_GITHUB_TOKEN = "github_token"
+        const val KEY_FIRECRAWL_API_KEY = "firecrawl_api_key"
         const val KEY_FIRST_RUN_SETUP_COMPLETE = "first_run_setup_complete"
 
         // Basic memory guidance shared by every chat variant. The advanced `## Structured
