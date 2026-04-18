@@ -59,16 +59,16 @@ For complex JS-rendered pages use the Playwright MCP instead.""",
 
     private fun stripHtml(html: String): String {
         var s = html
-        s = s.replace(Regex("<script[^>]*>[\s\S]*?</script>", RegexOption.IGNORE_CASE), " ")
-        s = s.replace(Regex("<style[^>]*>[\s\S]*?</style>", RegexOption.IGNORE_CASE), " ")
+        s = s.replace(Regex("""(?is)<script[^>]*>.*?</script>"""), " ")
+        s = s.replace(Regex("""(?is)<style[^>]*>.*?</style>"""), " ")
         s = s.replace(Regex("<[^>]+>"), " ")
-        s = s.replace(Regex("&nbsp;"), " ")
-        s = s.replace(Regex("&amp;"), "&")
-        s = s.replace(Regex("&lt;"), "<")
-        s = s.replace(Regex("&gt;"), ">")
-        s = s.replace(Regex("&quot;"), "\"")
-        s = s.replace(Regex("&#39;"), "'")
-        s = s.replace(Regex("[ \t]+"), " ")
+        s = s.replace("&nbsp;", " ")
+        s = s.replace("&amp;", "&")
+        s = s.replace("&lt;", "<")
+        s = s.replace("&gt;", ">")
+        s = s.replace("&quot;", "\"")
+        s = s.replace("&#39;", "'")
+        s = s.replace(Regex("""[ \t]+"""), " ")
         s = s.replace(Regex("\n{3,}"), "\n\n")
         return s
     }
