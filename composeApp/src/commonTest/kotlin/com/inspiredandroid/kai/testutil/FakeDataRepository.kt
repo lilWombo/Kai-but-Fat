@@ -20,6 +20,7 @@ import com.inspiredandroid.kai.inference.LocalModel
 import com.inspiredandroid.kai.mcp.McpServerConfig
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.tools.CommonTools
+import com.inspiredandroid.kai.ui.AppTheme
 import com.inspiredandroid.kai.ui.chat.History
 import com.inspiredandroid.kai.ui.settings.SettingsModel
 import io.github.vinceglb.filekit.PlatformFile
@@ -275,6 +276,8 @@ class FakeDataRepository : DataRepository {
     override fun setBraveApiKey(key: String) {}
     override fun getSerpApiKey(): String = ""
     override fun setSerpApiKey(key: String) {}
+    override fun getAppTheme(): AppTheme = AppTheme.SYSTEM
+    override fun setAppTheme(theme: AppTheme) {}
 
     // MCP servers
     private val mcpServers = mutableListOf<McpServerConfig>()
