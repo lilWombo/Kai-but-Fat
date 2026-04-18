@@ -1814,7 +1814,7 @@ private fun IntegrationsContent(
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    text = "Tap Enable to activate the required tools for each automation.",
+                    text = "Tap Enable to activate required tools for each automation.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1902,7 +1902,7 @@ private fun IntegrationsContent(
                 IntegrationItem(
                     emoji = "\uD83D\uDD0D",
                     title = "Neural Web Search",
-                    description = "Exa AI understands meaning, not just keywords — ideal for research.",
+                    description = "Exa AI understands meaning, not just keywords.",
                     requiredTools = listOf("exa_search"),
                     enabledToolIds = enabledToolIds,
                     onEnableAll = {
@@ -1926,9 +1926,86 @@ private fun IntegrationsContent(
                     requiredTools = listOf(),
                     enabledToolIds = enabledToolIds,
                     onEnableAll = {
-
+                        // always active
                     },
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun IntegrationItem(
+    emoji: String,
+    title: String,
+    description: String,
+    requiredTools: List<String>,
+    enabledToolIds: Set<String>,
+    onEnableAll: () -> Unit,
+) {
+    val allEnabled = requiredTools.isEmpty() || requiredTools.all { it in enabledToolIds }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(text = emoji, style = MaterialTheme.typography.titleLarge)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (allEnabled) {
+            Text(
+                text = "On",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.align(Alignment.CenterVertically),
+            )
+        } else {
+            TextButton(onClick = onEnableAll, modifier = Modifier.handCursor()) {
+                Text("Enable", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExportImportSection(
+    onExportSettings: () -> String,
+    onImportSettings: (ByteArray, Set<ImportSection>, Boolean) -> ImportResult,
+) {
+    val isPreview = LocalInspectionMode.current
+    val scope = rememberCoroutineScope()
+    var importResult by remember { mutableStateOf<ImportResult?>(null) }
+    var importPreview by remember { mutableStateOf<Pair<String, Map<ImportSection, String?>>?>(null) }
+
+    val filePickerLauncher = if (!isPreview) {
+        rememberFilePickerLauncher(
+            type = FileKitType.File(extensions = listOf("json")),
+        ) { file ->
+            if (file != null) {
+                scope.launch {
+                    val bytes = file.readBytes()
+                    try {
+                        val jsonString = bytes.decodeToString()
+                        val jsonObject = SharedJson.parseToJsonElement(jsonString).jsonObject
+                        val detectedSections = detectImportSections(jsonObject)
+                        importPreview = jsonString to detectedSections
+                    } catch (_: Exception) {
+                        importResult = ImportResult.Failure
+                    }
+                }
             }
         }
     } else {
@@ -2815,147 +2892,3 @@ internal fun ToggleableHeadline(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
-
-@Composable
-private fun IntegrationItem(
-    emoji: String,
-    title: String,
-    description: String,
-    requiredTools: List<String>,
-    enabledToolIds: Set<String>,
-    onEnableAll: () -> Unit,
-) {
-    val allEnabled = requiredTools.isEmpty() || requiredTools.all { it in enabledToolIds }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(text = emoji, style = MaterialTheme.typography.titleLarge)
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        if (allEnabled) {
-            Text(
-                text = "On",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.align(Alignment.CenterVertically),
-            )
-        } else {
-            TextButton(onClick = onEnableAll, modifier = Modifier.handCursor()) {
-                Text("Enable", style = MaterialTheme.typography.labelSmall)
-            }
-        }
-    }
-}
-
-
-private fun ExportImportSection(
-    onExportSettings: () -> String,
-    onImportSettings: (ByteArray, Set<ImportSection>, Boolean) -> ImportResult,
-) {
-    val isPreview = LocalInspectionMode.current
-    val scope = rememberCoroutineScope()
-    var importResult by remember { mutableStateOf<ImportResult?>(null) }
-    var importPreview by remember { mutableStateOf<Pair<String, Map<ImportSection, String?>>?>(null) }
-
-    val filePickerLauncher = if (!isPreview) {
-        rememberFilePickerLauncher(
-            type = FileKitType.File(extensions = listOf("json")),
-        ) { file ->
-            if (file != null) {
-                scope.launch {
-                    val bytes = file.readBytes()
-                    try {
-                        val jsonString = bytes.decodeToString()
-                        val jsonObject = SharedJson.parseToJsonElement(jsonString).jsonObject
-                        val detectedSections = detectImportSections(jsonObject)
-                        importPreview = jsonString to detectedSections
-                    } catch (_: Exception) {
-                        importResult = ImportResult.Failure
-                    }
-                }
-            }
-        }
-    } else {
-        null
-    }
-
-    importPreview?.let { (jsonString, sectionDetails) ->
-        ImportPreviewDialog(
-            sectionDetails = sectionDetails,
-            onConfirm = { selectedSections, replace ->
-                importResult = onImportSettings(jsonString.encodeToByteArray(), selectedSections, replace)
-                importPreview = null
-            },
-            onDismiss = { importPreview = null },
-        )
-    }
-
-    Text(
-        text = stringResource(Res.string.settings_export_import_title),
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onBackground,
-    )
-    Spacer(Modifier.height(4.dp))
-    Text(
-        text = stringResource(Res.string.settings_export_import_description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(12.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(
-            onClick = {
-                importResult = null
-                val json = onExportSettings()
-                scope.launch {
-                    saveFileToDevice(
-                        bytes = json.encodeToByteArray(),
-                        baseName = "kai-settings",
-                        extension = "json",
-                    )
-                }
-            },
-            modifier = Modifier.handCursor(),
-        ) {
-            Text(stringResource(Res.string.settings_export))
-        }
-        OutlinedButton(
-            onClick = {
-                importResult = null
-                filePickerLauncher?.launch()
-            },
-            modifier = Modifier.handCursor(),
-        ) {
-            Text(stringResource(Res.string.settings_import))
-        }
-    }
-    if (importResult != null) {
-        Spacer(Modifier.height(8.dp))
-        val (text, color) = when (val result = importResult!!) {
-            is ImportResult.Success -> stringResource(Res.string.settings_import_success) to MaterialTheme.colorScheme.primary
-            is ImportResult.PartialSuccess -> stringResource(Res.string.settings_import_partial, result.errorCount) to MaterialTheme.colorScheme.primary
-            is ImportResult.Failure -> stringResource(Res.string.settings_import_error) to MaterialTheme.colorScheme.error
-        }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = color,
-        )
-    }
-}
-
