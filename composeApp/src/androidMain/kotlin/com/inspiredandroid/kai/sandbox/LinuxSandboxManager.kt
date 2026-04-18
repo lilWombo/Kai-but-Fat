@@ -258,7 +258,7 @@ class LinuxSandboxManager(private val context: Context) {
                 // to deb.debian.org on its IPv6 address, causing "Connection refused".
                 executor.execute(
                     "mkdir -p /etc/apt/apt.conf.d && " +
-                        "printf 'Acquire::ForceIPv4 "true";\n' > /etc/apt/apt.conf.d/99force-ipv4",
+                        "printf 'Acquire::ForceIPv4 \"true\";\n' > /etc/apt/apt.conf.d/99force-ipv4",
                     timeoutSeconds = 10,
                 )
 
