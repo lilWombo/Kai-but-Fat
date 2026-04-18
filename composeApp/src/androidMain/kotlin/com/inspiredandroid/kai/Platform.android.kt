@@ -36,6 +36,11 @@ import com.inspiredandroid.kai.tools.ProcessManagerTool
 import com.inspiredandroid.kai.tools.SchedulingTools
 import com.inspiredandroid.kai.tools.ShellCommandTool
 import com.inspiredandroid.kai.tools.BraveSearchTool
+import com.inspiredandroid.kai.tools.ExaSearchTool
+import com.inspiredandroid.kai.tools.FetchTool
+import com.inspiredandroid.kai.tools.FirecrawlTool
+import com.inspiredandroid.kai.tools.GitHubTool
+import com.inspiredandroid.kai.tools.SequentialThinkingTool
 import com.inspiredandroid.kai.tools.SerpApiTool
 import com.inspiredandroid.kai.tools.TavilySearchTool
 import com.inspiredandroid.kai.tools.TreeSitterTool
@@ -179,6 +184,11 @@ actual fun getPlatformToolDefinitions(): List<ToolInfo> = CommonTools.commonTool
     ),
     BraveSearchTool.toolInfo,
     SerpApiTool.toolInfo,
+    ExaSearchTool.toolInfo,
+    FetchTool.toolInfo,
+    GitHubTool.toolInfo,
+    FirecrawlTool.toolInfo,
+    SequentialThinkingTool.toolInfo,
     ToolInfo(
         id = "vector_memory",
         name = "Vector Memory (ChromaDB)",
@@ -420,6 +430,19 @@ actual fun getAvailableTools(): List<Tool> {
         if (appSettings.isToolEnabled(SerpApiTool.schema.name)) {
             add(SerpApiTool)
         }
+        if (appSettings.isToolEnabled(ExaSearchTool.schema.name)) {
+            add(ExaSearchTool)
+        }
+        if (appSettings.isToolEnabled(FetchTool.schema.name)) {
+            add(FetchTool)
+        }
+        if (appSettings.isToolEnabled(GitHubTool.schema.name)) {
+            add(GitHubTool)
+        }
+        if (appSettings.isToolEnabled(FirecrawlTool.schema.name)) {
+            add(FirecrawlTool)
+        }
+        add(SequentialThinkingTool)
         if (appSettings.isToolEnabled(VectorMemoryTool.schema.name)) {
             add(VectorMemoryTool)
         }
