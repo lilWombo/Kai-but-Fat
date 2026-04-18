@@ -65,6 +65,12 @@ interface DataRepository {
     fun setBraveApiKey(key: String)
     fun getSerpApiKey(): String
     fun setSerpApiKey(key: String)
+    fun getExaApiKey(): String
+    fun setExaApiKey(key: String)
+    fun getGitHubToken(): String
+    fun setGitHubToken(key: String)
+    fun getFirecrawlApiKey(): String
+    fun setFirecrawlApiKey(key: String)
 
     // MCP servers
     fun getMcpServers(): List<McpServerConfig>
