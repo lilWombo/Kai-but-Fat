@@ -179,6 +179,17 @@ class LinuxSandboxManager(private val context: Context) {
             } else {
                 hostOverlay.mkdirs()
             }
+            // The debian bookworm-slim rootfs tarball is built mid-bootstrap and ships
+            // with files in /var/lib/dpkg/updates/ that cause apt-get to refuse to run
+            // ("dpkg was interrupted"). Wipe updates/ on the host right after seeding,
+            // before proot ever sees it. This is the canonical fix.
+            if (hostDir == "dpkg-state") {
+                val updates = File(hostOverlay, "updates")
+                updates.deleteRecursively()
+                updates.mkdirs()
+                updates.setWritable(true, false)
+                updates.setExecutable(true, false)
+            }
             // Make everything writable by the app process
             hostOverlay.walkTopDown().forEach { f ->
                 if (f.isDirectory) { f.setWritable(true, false); f.setExecutable(true, false) }
