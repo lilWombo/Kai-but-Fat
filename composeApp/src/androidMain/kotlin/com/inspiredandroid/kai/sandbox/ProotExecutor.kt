@@ -133,9 +133,14 @@ class ProotExecutor(
     private fun buildProcessArgs(command: String, workingDir: String): Array<String> = arrayOf(
         prootPath,
         "--rootfs=$rootfsPath",
+        "--link2symlink",
         "-b", "/dev",
+        "-b", "/dev/urandom:/dev/urandom",
+        "-b", "/dev/random:/dev/random",
+        "-b", "/dev/null:/dev/null",
         "-b", "/proc",
         "-b", "/sys",
+        "-b", "/etc/resolv.conf:/etc/resolv.conf",
         "-b", "$homePath:/root",
         "-b", "$tmpPath:/tmp",
         // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.
