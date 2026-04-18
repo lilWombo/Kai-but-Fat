@@ -15,6 +15,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
+import java.net.URLEncoder
 
 @Serializable
 private data class BraveWebResult(
@@ -83,18 +84,15 @@ Requires a Brave Search API key set in Settings > Tools.""",
             ?: return mapOf("success" to false, "error" to "query is required")
         val type = args["type"]?.toString()?.lowercase() ?: "web"
         val count = ((args["count"] as? Number)?.toInt() ?: 5).coerceIn(1, 20)
+        val encoded = URLEncoder.encode(query, "UTF-8")
 
         return try {
             if (type == "image") {
-                val response = client.get("https://api.search.brave.com/res/v1/images/search") {
+                val url = "https://api.search.brave.com/res/v1/images/search?q=$encoded&count=$count&safesearch=moderate"
+                val response = client.get(url) {
                     header("Accept", "application/json")
                     header("Accept-Encoding", "gzip")
                     header("X-Subscription-Token", apiKey)
-                    url {
-                        parameters.append("q", query)
-                        parameters.append("count", count.toString())
-                        parameters.append("safesearch", "moderate")
-                    }
                 }
                 val body = json.decodeFromString(BraveImageResults.serializer(), response.bodyAsText())
                 mapOf(
@@ -106,15 +104,11 @@ Requires a Brave Search API key set in Settings > Tools.""",
                     },
                 )
             } else {
-                val response = client.get("https://api.search.brave.com/res/v1/web/search") {
+                val url = "https://api.search.brave.com/res/v1/web/search?q=$encoded&count=$count&safesearch=moderate"
+                val response = client.get(url) {
                     header("Accept", "application/json")
                     header("Accept-Encoding", "gzip")
                     header("X-Subscription-Token", apiKey)
-                    url {
-                        parameters.append("q", query)
-                        parameters.append("count", count.toString())
-                        parameters.append("safesearch", "moderate")
-                    }
                 }
                 val body = json.decodeFromString(BraveSearchResponse.serializer(), response.bodyAsText())
                 mapOf(
