@@ -276,6 +276,12 @@ class FakeDataRepository : DataRepository {
     override fun setBraveApiKey(key: String) {}
     override fun getSerpApiKey(): String = ""
     override fun setSerpApiKey(key: String) {}
+    override fun getExaApiKey(): String = ""
+    override fun setExaApiKey(key: String) {}
+    override fun getGitHubToken(): String = ""
+    override fun setGitHubToken(key: String) {}
+    override fun getFirecrawlApiKey(): String = ""
+    override fun setFirecrawlApiKey(key: String) {}
     override fun getAppTheme(): AppTheme = AppTheme.SYSTEM
     override fun setAppTheme(theme: AppTheme) {}
 
