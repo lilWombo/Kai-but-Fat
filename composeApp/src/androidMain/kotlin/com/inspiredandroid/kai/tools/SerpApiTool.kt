@@ -14,6 +14,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
+import java.net.URLEncoder
 
 @Serializable
 private data class SerpApiOrganicResult(
@@ -53,8 +54,7 @@ object SerpApiTool : Tool {
         name = "serp_search",
         description = """Search Google via SerpApi for web results or images.
 Use type='web' (default) for standard Google search results.
-Use type='image' to search Google Images — best for finding specific photos, products, people, or places.
-Returns direct image URLs and thumbnails.
+Use type='image' to search Google Images — best for specific photos, products, people, or places.
 Requires a SerpApi key set in Settings > Tools (free at https://serpapi.com).""",
         parameters = mapOf(
             "query" to ParameterSchema("string", "The search query", true),
@@ -76,18 +76,11 @@ Requires a SerpApi key set in Settings > Tools (free at https://serpapi.com)."""
         val type = args["type"]?.toString()?.lowercase() ?: "web"
         val count = ((args["count"] as? Number)?.toInt() ?: 5).coerceIn(1, 10)
         val engine = if (type == "image") "google_images" else "google"
+        val encoded = URLEncoder.encode(query, "UTF-8")
+        val url = "https://serpapi.com/search?q=$encoded&engine=$engine&api_key=$apiKey&num=$count&hl=en&gl=us"
 
         return try {
-            val response = client.get("https://serpapi.com/search") {
-                url {
-                    parameters.append("q", query)
-                    parameters.append("engine", engine)
-                    parameters.append("api_key", apiKey)
-                    parameters.append("num", count.toString())
-                    parameters.append("hl", "en")
-                    parameters.append("gl", "us")
-                }
-            }
+            val response = client.get(url)
             val body = json.decodeFromString(SerpApiResponse.serializer(), response.bodyAsText())
             if (type == "image") {
                 mapOf(
