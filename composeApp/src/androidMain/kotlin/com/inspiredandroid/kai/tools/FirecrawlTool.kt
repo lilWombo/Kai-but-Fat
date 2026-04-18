@@ -16,7 +16,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.koin.java.KoinJavaComponent.inject
@@ -71,7 +70,7 @@ Better than fetch_url for JS-heavy pages. Requires a Firecrawl API key in Settin
                         setBody(body)
                     }
                     val obj = json.parseToJsonElement(resp.bodyAsText()).jsonObject
-                    val success = obj["success"]?.jsonPrimitive?.boolean ?: false
+                    val success = obj["success"]?.jsonPrimitive?.booleanOrNull ?: false
                     val md = obj["data"]?.jsonObject?.get("markdown")?.jsonPrimitive?.content ?: ""
                     mapOf("success" to success, "url" to url, "markdown" to md.take(10_000))
                 }
