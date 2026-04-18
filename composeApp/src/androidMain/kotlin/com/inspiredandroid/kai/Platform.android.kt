@@ -39,9 +39,9 @@ import com.inspiredandroid.kai.tools.NotificationResult
 import com.inspiredandroid.kai.tools.OllamaTool
 import com.inspiredandroid.kai.tools.ProcessManagerTool
 import com.inspiredandroid.kai.tools.SchedulingTools
-import com.inspiredandroid.kai.tools.SequentialThinkingTool
 import com.inspiredandroid.kai.tools.SelfAddMcpTool
 import com.inspiredandroid.kai.tools.SelfEnableToolTool
+import com.inspiredandroid.kai.tools.SequentialThinkingTool
 import com.inspiredandroid.kai.tools.SerpApiTool
 import com.inspiredandroid.kai.tools.ShellCommandTool
 import com.inspiredandroid.kai.tools.TavilySearchTool

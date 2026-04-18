@@ -36,8 +36,8 @@ Common tool IDs: brave_search, web_search, exa_search, fetch_url, github,
             ?: return mapOf("success" to false, "error" to "tool_id is required")
         val enabled = when (val v = args["enabled"]) {
             is Boolean -> v
-            is String  -> v.lowercase() == "true"
-            else       -> return mapOf("success" to false, "error" to "enabled must be true or false")
+            is String -> v.lowercase() == "true"
+            else -> return mapOf("success" to false, "error" to "enabled must be true or false")
         }
         appSettings.setToolEnabled(toolId, enabled)
         val state = if (enabled) "enabled" else "disabled"
