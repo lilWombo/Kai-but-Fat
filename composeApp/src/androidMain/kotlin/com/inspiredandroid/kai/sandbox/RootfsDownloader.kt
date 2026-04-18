@@ -284,16 +284,13 @@ class RootfsDownloader {
         etcDir.mkdirs()
         // Use Google + Cloudflare DNS; avoids broken ISP resolvers in proot.
         File(etcDir, "resolv.conf").writeText(
-            "nameserver 8.8.8.8
-nameserver 1.1.1.1
-",
+            "nameserver 8.8.8.8\nnameserver 1.1.1.1\n",
         )
         // Force apt to use IPv4 — Android NAT64 stacks expose IPv6 addresses for
         // deb.debian.org that proot cannot reach, causing "Connection refused".
         val aptConfDir = File(rootfsDir, "etc/apt/apt.conf.d")
         aptConfDir.mkdirs()
-        File(aptConfDir, "99force-ipv4").writeText("Acquire::ForceIPv4 "true";
-")
+        File(aptConfDir, "99force-ipv4").writeText("Acquire::ForceIPv4 \"true\";\n")
     }
 }
 
