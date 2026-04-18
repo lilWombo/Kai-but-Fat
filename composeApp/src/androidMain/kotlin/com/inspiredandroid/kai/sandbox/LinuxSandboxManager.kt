@@ -149,15 +149,6 @@ class LinuxSandboxManager(private val context: Context) {
     }
 
     /**
-     * Creates writable host-side directories that proot will bind-mount over the
-     * rootfs dpkg/apt state paths. This is necessary because Android's filesystem
-     * may enforce restrictive permissions on tar-extracted root-owned paths, causing
-     * dpkg to fail when creating backup files (e.g. /var/lib/dpkg/status-old).
-     *
-     * The overlay dirs are pre-seeded from the rootfs on first call, then kept in
-     * sync by proot binding them back into the chroot on every command execution.
-     */
-    /**
      * Prepares writable overlays for dpkg/apt/log paths.
      * Seeds from rootfs on first call only — subsequent calls just sanitize
      * (clear locks, wipe updates/, fix permissions) without destroying installed packages.
@@ -231,11 +222,10 @@ class LinuxSandboxManager(private val context: Context) {
         }
     }
 
-        private fun bootstrapWritableOverlays(rootfsDir: File) {
+    private fun bootstrapWritableOverlays(rootfsDir: File) {
         prepareWritableOverlays(rootfsDir)
     }
 
-    
     fun createProotExecutor(): ProotExecutor = ProotExecutor(
         prootPath = prootPath,
         libDir = sandboxDir.absolutePath,
