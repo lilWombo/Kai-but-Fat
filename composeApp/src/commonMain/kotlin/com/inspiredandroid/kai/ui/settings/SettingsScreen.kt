@@ -454,6 +454,12 @@ fun SettingsScreenContent(
                                         onChangeBraveApiKey = filteredUiState.onChangeBraveApiKey,
                                         serpApiKey = filteredUiState.serpApiKey,
                                         onChangeSerpApiKey = filteredUiState.onChangeSerpApiKey,
+                                        exaApiKey = filteredUiState.exaApiKey,
+                                        onChangeExaApiKey = filteredUiState.onChangeExaApiKey,
+                                        gitHubToken = filteredUiState.gitHubToken,
+                                        onChangeGitHubToken = filteredUiState.onChangeGitHubToken,
+                                        firecrawlApiKey = filteredUiState.firecrawlApiKey,
+                                        onChangeFirecrawlApiKey = filteredUiState.onChangeFirecrawlApiKey,
                                     )
                                 }
 
@@ -2094,6 +2100,12 @@ private fun ToolsContent(
     onChangeBraveApiKey: (String) -> Unit = {},
     serpApiKey: String = "",
     onChangeSerpApiKey: (String) -> Unit = {},
+    exaApiKey: String = "",
+    onChangeExaApiKey: (String) -> Unit = {},
+    gitHubToken: String = "",
+    onChangeGitHubToken: (String) -> Unit = {},
+    firecrawlApiKey: String = "",
+    onChangeFirecrawlApiKey: (String) -> Unit = {},
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // MCP Servers section
@@ -2166,6 +2178,12 @@ private fun ToolsContent(
             onChangeBraveApiKey = onChangeBraveApiKey,
             serpApiKey = serpApiKey,
             onChangeSerpApiKey = onChangeSerpApiKey,
+            exaApiKey = exaApiKey,
+            onChangeExaApiKey = onChangeExaApiKey,
+            gitHubToken = gitHubToken,
+            onChangeGitHubToken = onChangeGitHubToken,
+            firecrawlApiKey = firecrawlApiKey,
+            onChangeFirecrawlApiKey = onChangeFirecrawlApiKey,
         )
     }
 }
@@ -2178,6 +2196,12 @@ private fun SearchApiKeysCard(
     onChangeBraveApiKey: (String) -> Unit,
     serpApiKey: String,
     onChangeSerpApiKey: (String) -> Unit,
+    exaApiKey: String = "",
+    onChangeExaApiKey: (String) -> Unit = {},
+    gitHubToken: String = "",
+    onChangeGitHubToken: (String) -> Unit = {},
+    firecrawlApiKey: String = "",
+    onChangeFirecrawlApiKey: (String) -> Unit = {},
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -2205,6 +2229,12 @@ private fun SearchApiKeysCard(
                 value = braveApiKey, onValueChange = onChangeBraveApiKey)
             SearchApiKeyRow(label = "SerpApi (Google)", placeholder = "Enter SerpApi key",
                 value = serpApiKey, onValueChange = onChangeSerpApiKey)
+            SearchApiKeyRow(label = "Exa Neural Search", placeholder = "Enter Exa API key",
+                value = exaApiKey, onValueChange = onChangeExaApiKey)
+            SearchApiKeyRow(label = "GitHub Token", placeholder = "ghp_…",
+                value = gitHubToken, onValueChange = onChangeGitHubToken)
+            SearchApiKeyRow(label = "Firecrawl", placeholder = "fc-…",
+                value = firecrawlApiKey, onValueChange = onChangeFirecrawlApiKey)
         }
     }
 }
