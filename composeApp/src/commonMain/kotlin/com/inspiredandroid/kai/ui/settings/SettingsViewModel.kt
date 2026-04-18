@@ -77,6 +77,12 @@ class SettingsViewModel(
         onChangeBraveApiKey = ::onChangeBraveApiKey,
         serpApiKey = dataRepository.getSerpApiKey(),
         onChangeSerpApiKey = ::onChangeSerpApiKey,
+        exaApiKey = dataRepository.getExaApiKey(),
+        onChangeExaApiKey = ::onChangeExaApiKey,
+        gitHubToken = dataRepository.getGitHubToken(),
+        onChangeGitHubToken = ::onChangeGitHubToken,
+        firecrawlApiKey = dataRepository.getFirecrawlApiKey(),
+        onChangeFirecrawlApiKey = ::onChangeFirecrawlApiKey,
         soulText = dataRepository.getSoulText(),
         onSaveSoul = ::onSaveSoul,
         isDynamicUiEnabled = dataRepository.isDynamicUiEnabled(),
@@ -539,6 +545,21 @@ class SettingsViewModel(
     private fun onChangeSerpApiKey(key: String) {
         dataRepository.setSerpApiKey(key)
         _state.update { it.copy(serpApiKey = key) }
+    }
+
+    private fun onChangeExaApiKey(key: String) {
+        dataRepository.setExaApiKey(key)
+        _state.update { it.copy(exaApiKey = key) }
+    }
+
+    private fun onChangeGitHubToken(key: String) {
+        dataRepository.setGitHubToken(key)
+        _state.update { it.copy(gitHubToken = key) }
+    }
+
+    private fun onChangeFirecrawlApiKey(key: String) {
+        dataRepository.setFirecrawlApiKey(key)
+        _state.update { it.copy(firecrawlApiKey = key) }
     }
 
     // MCP server management
