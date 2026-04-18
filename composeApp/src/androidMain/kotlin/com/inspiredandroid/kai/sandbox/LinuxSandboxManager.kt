@@ -167,6 +167,7 @@ class LinuxSandboxManager(private val context: Context) {
         val overlays = mapOf(
             "dpkg-state" to "var/lib/dpkg",
             "apt-cache" to "var/cache/apt",
+            "apt-lists" to "var/lib/apt",
             "var-log" to "var/log",
         )
         overlays.forEach { (hostDir, rootfsRelPath) ->
@@ -188,6 +189,10 @@ class LinuxSandboxManager(private val context: Context) {
                 // print "dpkg was interrupted" and refuse to run.
                 File(hostOverlay, "updates").deleteRecursively()
                 File(hostOverlay, "updates").mkdirs()
+                // Wipe dpkg triggers — bookworm-slim ships trigger files that cause
+                // dpkg --configure -a to attempt postinst scripts and write status-old.
+                File(hostOverlay, "triggers").deleteRecursively()
+                File(hostOverlay, "triggers").mkdirs()
                 // Remove stale lock files left by a previously killed install.
                 File(hostOverlay, "lock").delete()
                 File(hostOverlay, "lock-frontend").delete()
@@ -259,17 +264,20 @@ class LinuxSandboxManager(private val context: Context) {
                     timeoutSeconds = 10,
                 )
 
-                // Run dpkg --configure -a and stop immediately if it fails.
-                val cfgResult = executor.execute(
-                    "DEBIAN_FRONTEND=noninteractive dpkg --configure -a",
+                // Force IPv4 — Android NAT64/IPv6 stacks often refuse connections
+                // to deb.debian.org on its IPv6 address, causing "Connection refused".
+                executor.execute(
+                    "mkdir -p /etc/apt/apt.conf.d && " +
+                        "printf 'Acquire::ForceIPv4 "true";\n' > /etc/apt/apt.conf.d/99force-ipv4",
+                    timeoutSeconds = 10,
+                )
+
+                // --force-all bypasses the status-old rename that fails with
+                // "Permission denied" due to bootstrap trigger files in the slim rootfs.
+                executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive dpkg --force-all --configure -a",
                     timeoutSeconds = 60,
                 )
-                if (cfgResult["success"] != true) {
-                    val err = cfgResult["stderr"] as? String ?: ""
-                    val out = cfgResult["stdout"] as? String ?: ""
-                    _state.value = SandboxState.Error("dpkg configure failed: ${err.ifEmpty { out }.take(200)}")
-                    return@launch
-                }
 
                 val updateResult = executor.execute(
                     "DEBIAN_FRONTEND=noninteractive apt-get update",
