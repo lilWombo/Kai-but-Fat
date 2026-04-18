@@ -482,6 +482,16 @@ class AppSettings(private val settings: Settings) {
         settings.putString(KEY_TAVILY_API_KEY, key)
     }
 
+    fun getBraveApiKey(): String = settings.getString(KEY_BRAVE_API_KEY, "")
+    fun setBraveApiKey(key: String) {
+        settings.putString(KEY_BRAVE_API_KEY, key)
+    }
+
+    fun getSerpApiKey(): String = settings.getString(KEY_SERP_API_KEY, "")
+    fun setSerpApiKey(key: String) {
+        settings.putString(KEY_SERP_API_KEY, key)
+    }
+
     fun isFirstRunSetupComplete(): Boolean = settings.getBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, false)
     fun setFirstRunSetupComplete(complete: Boolean) {
         settings.putBoolean(KEY_FIRST_RUN_SETUP_COMPLETE, complete)
@@ -1082,6 +1092,8 @@ class AppSettings(private val settings: Settings) {
         const val KEY_APP_THEME = "app_theme"
 
         const val KEY_TAVILY_API_KEY = "tavily_api_key"
+        const val KEY_BRAVE_API_KEY = "brave_api_key"
+        const val KEY_SERP_API_KEY = "serp_api_key"
         const val KEY_FIRST_RUN_SETUP_COMPLETE = "first_run_setup_complete"
 
         // Basic memory guidance shared by every chat variant. The advanced `## Structured
