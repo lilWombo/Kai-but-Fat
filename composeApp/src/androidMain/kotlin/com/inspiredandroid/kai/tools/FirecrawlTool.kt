@@ -70,7 +70,7 @@ Better than fetch_url for JS-heavy pages. Requires a Firecrawl API key in Settin
                         setBody(body)
                     }
                     val obj = json.parseToJsonElement(resp.bodyAsText()).jsonObject
-                    val success = obj["success"]?.jsonPrimitive?.booleanOrNull ?: false
+                    val success = obj["success"]?.jsonPrimitive?.content?.lowercase() == "true"
                     val md = obj["data"]?.jsonObject?.get("markdown")?.jsonPrimitive?.content ?: ""
                     mapOf("success" to success, "url" to url, "markdown" to md.take(10_000))
                 }
