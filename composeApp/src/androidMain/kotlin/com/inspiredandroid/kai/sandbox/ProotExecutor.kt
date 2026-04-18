@@ -133,17 +133,18 @@ class ProotExecutor(
     private fun buildProcessArgs(command: String, workingDir: String): Array<String> = arrayOf(
         prootPath,
         "--rootfs=$rootfsPath",
-        "--bind=/dev",
-        "--bind=/proc",
-        "--bind=/sys",
-        "--bind=$homePath:/root",
-        "--bind=$tmpPath:/tmp",
+        "-b", "/dev",
+        "-b", "/proc",
+        "-b", "/sys",
+        "-b", "$homePath:/root",
+        "-b", "$tmpPath:/tmp",
         // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.
-        // This bypasses Android's host-side permission restrictions on those paths:
-        // proot sees a freshly created, app-owned dir that it can write freely.
-        "--bind=$libDir/dpkg-state:/var/lib/dpkg",
-        "--bind=$libDir/apt-cache:/var/cache/apt",
-        "--bind=$libDir/var-log:/var/log",
+        // Use -b HOST:GUEST (space-separated) rather than --bind=HOST:GUEST — some
+        // Android proot builds only recognise the short form.
+        "-b", "$libDir/dpkg-state:/var/lib/dpkg",
+        "-b", "$libDir/apt-cache:/var/cache/apt",
+        "-b", "$libDir/apt-lists:/var/lib/apt",
+        "-b", "$libDir/var-log:/var/log",
         "-0",
         "-w", workingDir,
         "/bin/sh", "-c", command,
