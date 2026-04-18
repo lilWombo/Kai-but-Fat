@@ -282,15 +282,34 @@ class RootfsDownloader {
     fun writeResolvConf(rootfsDir: File) {
         val etcDir = File(rootfsDir, "etc")
         etcDir.mkdirs()
-        // Use Google + Cloudflare DNS; avoids broken ISP resolvers in proot.
+        // Write fallback DNS — proot also bind-mounts the host /etc/resolv.conf
+        // so the device's real resolver is used first.
         File(etcDir, "resolv.conf").writeText(
-            "nameserver 8.8.8.8\nnameserver 1.1.1.1\n",
+            "nameserver 8.8.8.8\nnameserver 1.1.1.1\nnameserver 9.9.9.9\n",
         )
-        // Force apt to use IPv4 — Android NAT64 stacks expose IPv6 addresses for
-        // deb.debian.org that proot cannot reach, causing "Connection refused".
+        // Switch apt sources to plain HTTP — proot has no CA bundle so HTTPS
+        // transport fails before ca-certificates can be installed.
+        val sourcesFile = File(rootfsDir, "etc/apt/sources.list")
+        sourcesFile.parentFile?.mkdirs()
+        sourcesFile.writeText(
+            "deb http://deb.debian.org/debian bookworm main\n" +
+                "deb http://deb.debian.org/debian bookworm-updates main\n" +
+                "deb http://security.debian.org/debian-security bookworm-security main\n",
+        )
+        // Aggressive apt config for proot/Android: ForceIPv4, allow HTTP repos,
+        // skip date checks, retry on transient network failures.
         val aptConfDir = File(rootfsDir, "etc/apt/apt.conf.d")
         aptConfDir.mkdirs()
-        File(aptConfDir, "99force-ipv4").writeText("Acquire::ForceIPv4 \"true\";\n")
+        File(aptConfDir, "00android").writeText(
+            "Acquire::ForceIPv4 \"true\";\n" +
+                "APT::Install-Recommends \"false\";\n" +
+                "APT::Install-Suggests \"false\";\n" +
+                "Acquire::AllowInsecureRepositories \"true\";\n" +
+                "Acquire::AllowDowngradeToInsecureRepositories \"true\";\n" +
+                "Acquire::Check-Valid-Until \"false\";\n" +
+                "Acquire::Retries \"3\";\n" +
+                "Acquire::http::Timeout \"30\";\n",
+        )
     }
 }
 
