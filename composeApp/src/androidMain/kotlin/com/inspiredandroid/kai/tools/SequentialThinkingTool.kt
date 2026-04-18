@@ -13,7 +13,7 @@ import com.inspiredandroid.kai.network.tools.ToolSchema
  */
 object SequentialThinkingTool : Tool {
 
-    private val thoughts = mutableListOf<Map<String, Any>>()
+    private val thoughts = java.util.concurrent.CopyOnWriteArrayList<Map<String, Any>>()
 
     override val schema = ToolSchema(
         name = "sequential_thinking",
