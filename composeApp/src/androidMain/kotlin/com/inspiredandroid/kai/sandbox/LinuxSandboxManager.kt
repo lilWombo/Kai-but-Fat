@@ -236,70 +236,60 @@ class LinuxSandboxManager(private val context: Context) {
 
     fun installPackages() {
         if (currentJob?.isActive == true) return
-        val packages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
+        // ca-certificates must be first so HTTPS works for subsequent packages.
+        // busybox provides a minimal wget/curl fallback even before the real ones install.
+        val bootstrapPackages = listOf("ca-certificates", "busybox")
+        val mainPackages      = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
             try {
                 val executor = createProotExecutor()
 
-                // Reset the dpkg/apt overlays to a clean state before every install.
-                // This wipes any interrupted dpkg runs that would cause:
-                //   "dpkg was interrupted, you must manually run dpkg --configure -a"
                 _state.value = SandboxState.Installing("Preparing package manager...")
                 prepareWritableOverlays(File(rootfsPath))
 
-                // Remove stale lock files and forcefully clean updates/
                 executor.execute(
                     "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock && " +
                         "rm -rf /var/lib/dpkg/updates && mkdir -p /var/lib/dpkg/updates",
                     timeoutSeconds = 10,
                 )
-
-                // Force IPv4 — Android NAT64/IPv6 stacks often refuse connections
-                // to deb.debian.org on its IPv6 address, causing "Connection refused".
-                executor.execute(
-                    "mkdir -p /etc/apt/apt.conf.d && " +
-                        "printf 'Acquire::ForceIPv4 \"true\";\n' > /etc/apt/apt.conf.d/99force-ipv4",
-                    timeoutSeconds = 10,
-                )
-
-                // --force-all bypasses the status-old rename that fails with
-                // "Permission denied" due to bootstrap trigger files in the slim rootfs.
                 executor.execute(
                     "DEBIAN_FRONTEND=noninteractive dpkg --force-all --configure -a",
                     timeoutSeconds = 60,
                 )
 
+                _state.value = SandboxState.Installing("Updating package lists...")
                 val updateResult = executor.execute(
-                    "DEBIAN_FRONTEND=noninteractive apt-get update",
-                    timeoutSeconds = 120,
+                    "DEBIAN_FRONTEND=noninteractive apt-get update --allow-insecure-repositories -o Acquire::Check-Valid-Until=false",
+                    timeoutSeconds = 180,
                 )
                 if (updateResult["success"] != true) {
                     val err = updateResult["stderr"] as? String ?: ""
                     val out = updateResult["stdout"] as? String ?: ""
-                    _state.value = SandboxState.Error("apt update failed: ${err.ifEmpty { out }.take(200)}")
+                    _state.value = SandboxState.Error("apt update failed: ${err.ifEmpty { out }.take(300)}")
                     return@launch
                 }
 
-                for (pkg in packages) {
+                for (pkg in bootstrapPackages + mainPackages) {
                     ensureActive()
                     _state.value = SandboxState.Installing("Installing $pkg...")
                     val result = executor.execute(
                         "DEBIAN_FRONTEND=noninteractive apt-get install -y " +
+                            "--allow-unauthenticated " +
                             "--no-install-recommends " +
                             "-o Dpkg::Options::=\"--force-confdef\" " +
                             "-o Dpkg::Options::=\"--force-confold\" $pkg",
-                        timeoutSeconds = 120,
+                        timeoutSeconds = 180,
                     )
                     ensureActive()
                     val success = result["success"] as? Boolean ?: false
                     if (!success) {
                         val stderr = result["stderr"] as? String ?: ""
                         val stdout = result["stdout"] as? String ?: ""
-                        val error = result["error"] as? String ?: ""
-                        val timedOut = result["timed_out"] as? Boolean ?: false
-                        val exitCode = result["exit_code"] as? Int ?: -1
+                        val error  = result["error"]  as? String ?: ""
+                        val timedOut  = result["timed_out"]  as? Boolean ?: false
+                        val exitCode  = result["exit_code"]  as? Int ?: -1
                         android.util.Log.e("LinuxSandbox", "Failed to install $pkg: exit=$exitCode timedOut=$timedOut error=$error stdout=$stdout stderr=$stderr")
-                        _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(200)}")
+                        _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(300)}")
                         return@launch
                     }
                 }
