@@ -282,7 +282,7 @@ class FakeDataRepository : DataRepository {
     override fun setGitHubToken(key: String) {}
     override fun getFirecrawlApiKey(): String = ""
     override fun setFirecrawlApiKey(key: String) {}
-    override fun getAppTheme(): AppTheme = AppTheme.SYSTEM
+    override fun getAppTheme(): AppTheme = AppTheme.DEFAULT
     override fun setAppTheme(theme: AppTheme) {}
 
     // MCP servers
