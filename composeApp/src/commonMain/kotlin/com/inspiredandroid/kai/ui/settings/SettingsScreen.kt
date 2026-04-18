@@ -2452,8 +2452,6 @@ private fun SoulEditor(
     val displayText = soulText.ifEmpty { localizedDefault }
     var editedText by remember(displayText) { mutableStateOf(displayText) }
     val hasChanges = editedText != displayText
-    val maxChars = 4000
-
     var showResetDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -2490,7 +2488,7 @@ private fun SoulEditor(
         KaiOutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = editedText,
-            onValueChange = { if (it.length <= maxChars) editedText = it },
+            onValueChange = { editedText = it },
             minLines = 8,
             maxLines = 8,
             label = {
@@ -2502,7 +2500,7 @@ private fun SoulEditor(
         )
 
         Text(
-            text = "${editedText.length}/$maxChars",
+            text = "${editedText.length} chars",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
