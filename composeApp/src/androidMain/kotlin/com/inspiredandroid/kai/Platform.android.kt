@@ -35,6 +35,8 @@ import com.inspiredandroid.kai.tools.OllamaTool
 import com.inspiredandroid.kai.tools.ProcessManagerTool
 import com.inspiredandroid.kai.tools.SchedulingTools
 import com.inspiredandroid.kai.tools.ShellCommandTool
+import com.inspiredandroid.kai.tools.BraveSearchTool
+import com.inspiredandroid.kai.tools.SerpApiTool
 import com.inspiredandroid.kai.tools.TavilySearchTool
 import com.inspiredandroid.kai.tools.TreeSitterTool
 import com.inspiredandroid.kai.tools.VectorMemoryTool
@@ -175,6 +177,8 @@ actual fun getPlatformToolDefinitions(): List<ToolInfo> = CommonTools.commonTool
         name = "Tavily AI Search",
         description = "AI-powered web search with direct answers and cited sources",
     ),
+    BraveSearchTool.toolInfo,
+    SerpApiTool.toolInfo,
     ToolInfo(
         id = "vector_memory",
         name = "Vector Memory (ChromaDB)",
@@ -409,6 +413,12 @@ actual fun getAvailableTools(): List<Tool> {
 
         if (appSettings.isToolEnabled(TavilySearchTool.schema.name)) {
             add(TavilySearchTool)
+        }
+        if (appSettings.isToolEnabled(BraveSearchTool.schema.name)) {
+            add(BraveSearchTool)
+        }
+        if (appSettings.isToolEnabled(SerpApiTool.schema.name)) {
+            add(SerpApiTool)
         }
         if (appSettings.isToolEnabled(VectorMemoryTool.schema.name)) {
             add(VectorMemoryTool)
