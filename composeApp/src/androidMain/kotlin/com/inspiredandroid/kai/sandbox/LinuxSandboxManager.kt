@@ -158,12 +158,12 @@ class LinuxSandboxManager(private val context: Context) {
      * sync by proot binding them back into the chroot on every command execution.
      */
     /**
-     * Force-wipes and re-seeds the dpkg/apt overlays from the clean rootfs.
-     * Call before any apt/dpkg operation to guarantee a non-interrupted dpkg state.
-     * This prevents "dpkg was interrupted, run dpkg --configure -a" errors that
-     * occur when a previous install was killed mid-run and left state in updates/.
+     * Prepares writable overlays for dpkg/apt/log paths.
+     * Seeds from rootfs on first call only — subsequent calls just sanitize
+     * (clear locks, wipe updates/, fix permissions) without destroying installed packages.
+     * This preserves the dpkg status tracking installed packages across retries.
      */
-    private fun resetWritableOverlays(rootfsDir: File) {
+    private fun prepareWritableOverlays(rootfsDir: File) {
         val overlays = mapOf(
             "dpkg-state" to "var/lib/dpkg",
             "apt-cache" to "var/cache/apt",
@@ -172,62 +172,65 @@ class LinuxSandboxManager(private val context: Context) {
         overlays.forEach { (hostDir, rootfsRelPath) ->
             val hostOverlay = File(sandboxDir, hostDir)
             val rootfsSource = File(rootfsDir, rootfsRelPath)
-            // Always delete and re-seed — ensures clean non-interrupted dpkg state
-            hostOverlay.deleteRecursively()
-            if (rootfsSource.exists()) {
-                rootfsSource.copyRecursively(hostOverlay, overwrite = true)
-            } else {
-                hostOverlay.mkdirs()
-            }
-            // The debian bookworm-slim rootfs tarball is built mid-bootstrap and ships
-            // with files in /var/lib/dpkg/updates/ that cause apt-get to refuse to run
-            // ("dpkg was interrupted"). Wipe updates/ on the host right after seeding,
-            // before proot ever sees it. This is the canonical fix.
-            if (hostDir == "dpkg-state") {
-                val updates = File(hostOverlay, "updates")
-                updates.deleteRecursively()
-                updates.mkdirs()
-                updates.setWritable(true, false)
-                updates.setExecutable(true, false)
-            }
-            // Make everything writable by the app process
-            hostOverlay.walkTopDown().forEach { f ->
-                if (f.isDirectory) { f.setWritable(true, false); f.setExecutable(true, false) }
-                else { f.setWritable(true, false); f.setReadable(true, false) }
-            }
-        }
-    }
 
-    private fun bootstrapWritableOverlays(rootfsDir: File) {
-        val overlays = mapOf(
-            "dpkg-state" to "var/lib/dpkg",
-            "apt-cache" to "var/cache/apt",
-            "var-log" to "var/log",
-        )
-        overlays.forEach { (hostDir, rootfsRelPath) ->
-            val hostOverlay = File(sandboxDir, hostDir)
-            val rootfsSource = File(rootfsDir, rootfsRelPath)
+            // Seed from rootfs only on first time — never delete an existing overlay.
             if (!hostOverlay.exists()) {
-                // Seed from rootfs so dpkg/apt see their existing state
                 if (rootfsSource.exists()) {
                     rootfsSource.copyRecursively(hostOverlay, overwrite = true)
                 } else {
                     hostOverlay.mkdirs()
                 }
             }
-            // Ensure the overlay is writable by the app process
+
+            if (hostDir == "dpkg-state") {
+                // Wipe the dpkg updates queue. The bookworm-slim rootfs ships with
+                // files here from its own bootstrap run; leaving them causes apt to
+                // print "dpkg was interrupted" and refuse to run.
+                File(hostOverlay, "updates").deleteRecursively()
+                File(hostOverlay, "updates").mkdirs()
+                // Remove stale lock files left by a previously killed install.
+                File(hostOverlay, "lock").delete()
+                File(hostOverlay, "lock-frontend").delete()
+                File(hostOverlay, "status-old").delete()
+                // Patch any half-configured or trigger-pending packages to "installed"
+                // so dpkg --configure -a exits 0 without trying to write status-old.
+                File(hostOverlay, "status").let { status ->
+                    if (status.exists()) {
+                        val patched = status.readText()
+                            .replace(Regex("(?m)^Status: install ok half-configured$"), "Status: install ok installed")
+                            .replace(Regex("(?m)^Status: install ok triggers-pending$"), "Status: install ok installed")
+                            .replace(Regex("(?m)^Status: install ok triggers-awaited$"), "Status: install ok installed")
+                            .replace(Regex("(?m)^Status: hold ok half-configured$"), "Status: hold ok installed")
+                        status.writeText(patched)
+                    }
+                }
+            }
+
+            if (hostDir == "apt-cache") {
+                File(hostOverlay, "archives").mkdirs()
+                File(hostOverlay, "archives/partial").mkdirs()
+                File(hostOverlay, "archives/lock").delete()
+            }
+
+            // Ensure everything is world-writable so proot -0 can write freely.
             hostOverlay.walkTopDown().forEach { f ->
                 if (f.isDirectory) {
+                    f.setReadable(true, false)
                     f.setWritable(true, false)
                     f.setExecutable(true, false)
                 } else {
-                    f.setWritable(true, false)
                     f.setReadable(true, false)
+                    f.setWritable(true, false)
                 }
             }
         }
     }
 
+        private fun bootstrapWritableOverlays(rootfsDir: File) {
+        prepareWritableOverlays(rootfsDir)
+    }
+
+    
     fun createProotExecutor(): ProotExecutor = ProotExecutor(
         prootPath = prootPath,
         libDir = sandboxDir.absolutePath,
@@ -247,7 +250,7 @@ class LinuxSandboxManager(private val context: Context) {
                 // This wipes any interrupted dpkg runs that would cause:
                 //   "dpkg was interrupted, you must manually run dpkg --configure -a"
                 _state.value = SandboxState.Installing("Preparing package manager...")
-                resetWritableOverlays(File(rootfsPath))
+                prepareWritableOverlays(File(rootfsPath))
 
                 // Remove stale lock files and forcefully clean updates/
                 executor.execute(
