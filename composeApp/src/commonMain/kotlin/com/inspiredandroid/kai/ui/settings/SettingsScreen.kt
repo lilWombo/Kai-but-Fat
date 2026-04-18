@@ -2216,28 +2216,17 @@ private fun SearchApiKeyRow(
     value: String,
     onValueChange: (String) -> Unit,
 ) {
-    var visible by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedTextField(
+        KaiOutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder) },
-            singleLine = true,
-            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { visible = !visible }) {
-                    Icon(
-                        imageVector = if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (visible) "Hide key" else "Show key",
-                    )
-                }
-            },
+            label = { Text(placeholder) },
         )
     }
 }
