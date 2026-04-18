@@ -1,19 +1,4 @@
-
-
-    private fun onChangeTavilyApiKey(key: String) {
-        dataRepository.setTavilyApiKey(key)
-        _state.update { it.copy(tavilyApiKey = key) }
-    }
-
-    private fun onChangeBraveApiKey(key: String) {
-        dataRepository.setBraveApiKey(key)
-        _state.update { it.copy(braveApiKey = key) }
-    }
-
-    private fun onChangeSerpApiKey(key: String) {
-        dataRepository.setSerpApiKey(key)
-        _state.update { it.copy(serpApiKey = key) }
-    }package com.inspiredandroid.kai.ui.settings
+package com.inspiredandroid.kai.ui.settings
 
 import com.inspiredandroid.kai.ui.AppTheme
 
