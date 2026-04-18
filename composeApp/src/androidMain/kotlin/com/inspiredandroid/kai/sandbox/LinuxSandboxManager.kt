@@ -239,7 +239,7 @@ class LinuxSandboxManager(private val context: Context) {
         // ca-certificates must be first so HTTPS works for subsequent packages.
         // busybox provides a minimal wget/curl fallback even before the real ones install.
         val bootstrapPackages = listOf("ca-certificates", "busybox")
-        val mainPackages      = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
+        val mainPackages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
             try {
                 val executor = createProotExecutor()
@@ -285,9 +285,9 @@ class LinuxSandboxManager(private val context: Context) {
                     if (!success) {
                         val stderr = result["stderr"] as? String ?: ""
                         val stdout = result["stdout"] as? String ?: ""
-                        val error  = result["error"]  as? String ?: ""
-                        val timedOut  = result["timed_out"]  as? Boolean ?: false
-                        val exitCode  = result["exit_code"]  as? Int ?: -1
+                        val error = result["error"] as? String ?: ""
+                        val timedOut = result["timed_out"] as? Boolean ?: false
+                        val exitCode = result["exit_code"] as? Int ?: -1
                         android.util.Log.e("LinuxSandbox", "Failed to install $pkg: exit=$exitCode timedOut=$timedOut error=$error stdout=$stdout stderr=$stderr")
                         _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(300)}")
                         return@launch

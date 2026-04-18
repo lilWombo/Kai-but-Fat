@@ -1,7 +1,5 @@
 package com.inspiredandroid.kai.ui.settings
 
-import com.inspiredandroid.kai.ui.AppTheme
-
 import androidx.compose.runtime.Immutable
 import com.inspiredandroid.kai.data.EmailAccount
 import com.inspiredandroid.kai.data.HeartbeatLogEntry
@@ -15,6 +13,7 @@ import com.inspiredandroid.kai.inference.LocalModel
 import com.inspiredandroid.kai.mcp.PopularMcpServer
 import com.inspiredandroid.kai.network.dtos.SponsorsResponseDto
 import com.inspiredandroid.kai.network.tools.ToolInfo
+import com.inspiredandroid.kai.ui.AppTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf

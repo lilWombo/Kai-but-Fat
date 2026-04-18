@@ -1,8 +1,7 @@
 package com.inspiredandroid.kai.data
 
-import com.inspiredandroid.kai.ui.AppTheme
-
 import com.inspiredandroid.kai.defaultUiScale
+import com.inspiredandroid.kai.ui.AppTheme
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

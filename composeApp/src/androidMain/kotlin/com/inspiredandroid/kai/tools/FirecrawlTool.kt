@@ -15,10 +15,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.koin.java.KoinJavaComponent.inject
 
 /**
@@ -75,6 +75,7 @@ Better than fetch_url for JS-heavy pages. Requires a Firecrawl API key in Settin
                     val md = obj["data"]?.jsonObject?.get("markdown")?.jsonPrimitive?.content ?: ""
                     mapOf("success" to success, "url" to url, "markdown" to md.take(10_000))
                 }
+
                 "crawl" -> {
                     val limit = ((args["limit"] as? Number)?.toInt() ?: 5).coerceIn(1, 20)
                     val body = """{"url":"$url","limit":$limit,"scrapeOptions":{"formats":["markdown"]}}"""
@@ -85,9 +86,14 @@ Better than fetch_url for JS-heavy pages. Requires a Firecrawl API key in Settin
                     }
                     val obj = json.parseToJsonElement(resp.bodyAsText()).jsonObject
                     val jobId = obj["id"]?.jsonPrimitive?.content ?: ""
-                    mapOf("success" to true, "message" to "Crawl started", "job_id" to jobId,
-                          "note" to "Crawl runs asynchronously. Poll GET https://api.firecrawl.dev/v1/crawl/$jobId for results.")
+                    mapOf(
+                        "success" to true,
+                        "message" to "Crawl started",
+                        "job_id" to jobId,
+                        "note" to "Crawl runs asynchronously. Poll GET https://api.firecrawl.dev/v1/crawl/$jobId for results.",
+                    )
                 }
+
                 "extract" -> {
                     val prompt = args["prompt"]?.toString() ?: "Extract all key information"
                     val body = """{"url":"$url","prompt":"$prompt"}"""
@@ -99,6 +105,7 @@ Better than fetch_url for JS-heavy pages. Requires a Firecrawl API key in Settin
                     val obj = json.parseToJsonElement(resp.bodyAsText()).jsonObject
                     mapOf("success" to true, "url" to url, "data" to obj["data"].toString())
                 }
+
                 else -> mapOf("success" to false, "error" to "Unknown action: $action. Use scrape | crawl | extract")
             }
         } catch (e: Exception) {

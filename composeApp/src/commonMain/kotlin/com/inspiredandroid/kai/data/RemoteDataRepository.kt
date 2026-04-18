@@ -2,8 +2,6 @@
 
 package com.inspiredandroid.kai.data
 
-import com.inspiredandroid.kai.ui.AppTheme
-
 import com.inspiredandroid.kai.compressImageBytes
 import com.inspiredandroid.kai.formatFileSize
 import com.inspiredandroid.kai.getAvailableTools
@@ -34,6 +32,7 @@ import com.inspiredandroid.kai.network.dtos.gemini.extractText
 import com.inspiredandroid.kai.network.tools.Tool
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.platformName
+import com.inspiredandroid.kai.ui.AppTheme
 import com.inspiredandroid.kai.ui.chat.History
 import com.inspiredandroid.kai.ui.chat.ToolCallInfo
 import com.inspiredandroid.kai.ui.chat.toAnthropicContentBlocks

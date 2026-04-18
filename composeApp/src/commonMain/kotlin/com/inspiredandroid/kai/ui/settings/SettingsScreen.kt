@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,9 +51,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
-import com.inspiredandroid.kai.ui.AppTheme
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -129,6 +128,7 @@ import com.inspiredandroid.kai.mcp.PopularMcpServer
 import com.inspiredandroid.kai.network.dtos.SponsorsResponseDto
 import com.inspiredandroid.kai.network.tools.ToolInfo
 import com.inspiredandroid.kai.saveFileToDevice
+import com.inspiredandroid.kai.ui.AppTheme
 import com.inspiredandroid.kai.ui.KaiClearableTextField
 import com.inspiredandroid.kai.ui.KaiOutlinedTextField
 import com.inspiredandroid.kai.ui.components.KaiSlider
@@ -1815,20 +1815,41 @@ private fun IntegrationsContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                SuggestionItem(emoji = "\uD83D\uDD14", title = "Smart Notifications",
-                    description = "AI monitors topics and pushes alerts when relevant news breaks. Needs: Brave Search + Notifications tool.")
-                SuggestionItem(emoji = "\uD83D\uDCC5", title = "Calendar Assistant",
-                    description = "Auto-creates calendar events from conversations and emails. Needs: Calendar tool + Email tool.")
-                SuggestionItem(emoji = "\uD83D\uDDBC\uFE0F", title = "Image Research",
-                    description = "Find, compare, and summarise images from any search query. Needs: Brave Search or SerpApi (image mode).")
-                SuggestionItem(emoji = "\uD83D\uDC0D", title = "Code Runner",
-                    description = "Execute Python, Node.js, or shell scripts inline. Needs: Debian Linux sandbox + Shell Command tool.")
-                SuggestionItem(emoji = "\uD83E\uDDE0", title = "Persistent Memory Agent",
-                    description = "AI remembers facts across sessions and surfaces them proactively. Needs: Memory MCP + Heartbeat.")
-                SuggestionItem(emoji = "\uD83D\uDCF0", title = "Daily Digest",
-                    description = "Scheduled morning briefing from HackerNews + Brave Search. Needs: HackerNews MCP + Scheduling tool.")
-                SuggestionItem(emoji = "\uD83C\uDF10", title = "Web Scraper",
-                    description = "Fetch, parse, and summarise any URL. Needs: Fetch MCP or Playwright Browser MCP.")
+                SuggestionItem(
+                    emoji = "\uD83D\uDD14",
+                    title = "Smart Notifications",
+                    description = "AI monitors topics and pushes alerts when relevant news breaks. Needs: Brave Search + Notifications tool.",
+                )
+                SuggestionItem(
+                    emoji = "\uD83D\uDCC5",
+                    title = "Calendar Assistant",
+                    description = "Auto-creates calendar events from conversations and emails. Needs: Calendar tool + Email tool.",
+                )
+                SuggestionItem(
+                    emoji = "\uD83D\uDDBC\uFE0F",
+                    title = "Image Research",
+                    description = "Find, compare, and summarise images from any search query. Needs: Brave Search or SerpApi (image mode).",
+                )
+                SuggestionItem(
+                    emoji = "\uD83D\uDC0D",
+                    title = "Code Runner",
+                    description = "Execute Python, Node.js, or shell scripts inline. Needs: Debian Linux sandbox + Shell Command tool.",
+                )
+                SuggestionItem(
+                    emoji = "\uD83E\uDDE0",
+                    title = "Persistent Memory Agent",
+                    description = "AI remembers facts across sessions and surfaces them proactively. Needs: Memory MCP + Heartbeat.",
+                )
+                SuggestionItem(
+                    emoji = "\uD83D\uDCF0",
+                    title = "Daily Digest",
+                    description = "Scheduled morning briefing from HackerNews + Brave Search. Needs: HackerNews MCP + Scheduling tool.",
+                )
+                SuggestionItem(
+                    emoji = "\uD83C\uDF10",
+                    title = "Web Scraper",
+                    description = "Fetch, parse, and summarise any URL. Needs: Fetch MCP or Playwright Browser MCP.",
+                )
             }
         }
     }
@@ -2223,18 +2244,42 @@ private fun SearchApiKeysCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            SearchApiKeyRow(label = "Tavily", placeholder = "tvly-…",
-                value = tavilyApiKey, onValueChange = onChangeTavilyApiKey)
-            SearchApiKeyRow(label = "Brave Search", placeholder = "BSA…",
-                value = braveApiKey, onValueChange = onChangeBraveApiKey)
-            SearchApiKeyRow(label = "SerpApi (Google)", placeholder = "Enter SerpApi key",
-                value = serpApiKey, onValueChange = onChangeSerpApiKey)
-            SearchApiKeyRow(label = "Exa Neural Search", placeholder = "Enter Exa API key",
-                value = exaApiKey, onValueChange = onChangeExaApiKey)
-            SearchApiKeyRow(label = "GitHub Token", placeholder = "ghp_…",
-                value = gitHubToken, onValueChange = onChangeGitHubToken)
-            SearchApiKeyRow(label = "Firecrawl", placeholder = "fc-…",
-                value = firecrawlApiKey, onValueChange = onChangeFirecrawlApiKey)
+            SearchApiKeyRow(
+                label = "Tavily",
+                placeholder = "tvly-…",
+                value = tavilyApiKey,
+                onValueChange = onChangeTavilyApiKey,
+            )
+            SearchApiKeyRow(
+                label = "Brave Search",
+                placeholder = "BSA…",
+                value = braveApiKey,
+                onValueChange = onChangeBraveApiKey,
+            )
+            SearchApiKeyRow(
+                label = "SerpApi (Google)",
+                placeholder = "Enter SerpApi key",
+                value = serpApiKey,
+                onValueChange = onChangeSerpApiKey,
+            )
+            SearchApiKeyRow(
+                label = "Exa Neural Search",
+                placeholder = "Enter Exa API key",
+                value = exaApiKey,
+                onValueChange = onChangeExaApiKey,
+            )
+            SearchApiKeyRow(
+                label = "GitHub Token",
+                placeholder = "ghp_…",
+                value = gitHubToken,
+                onValueChange = onChangeGitHubToken,
+            )
+            SearchApiKeyRow(
+                label = "Firecrawl",
+                placeholder = "fc-…",
+                value = firecrawlApiKey,
+                onValueChange = onChangeFirecrawlApiKey,
+            )
         }
     }
 }

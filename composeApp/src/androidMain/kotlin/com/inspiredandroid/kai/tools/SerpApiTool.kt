@@ -87,9 +87,13 @@ Requires a SerpApi key set in Settings > Tools (free at https://serpapi.com)."""
                     "success" to true,
                     "type" to "image",
                     "results" to body.imagesResults.take(count).map {
-                        mapOf("title" to it.title, "image_url" to it.imageUrl,
-                            "thumbnail_url" to it.thumbnailUrl, "source" to it.source,
-                            "page_url" to it.pageUrl)
+                        mapOf(
+                            "title" to it.title,
+                            "image_url" to it.imageUrl,
+                            "thumbnail_url" to it.thumbnailUrl,
+                            "source" to it.source,
+                            "page_url" to it.pageUrl,
+                        )
                     },
                 )
             } else {

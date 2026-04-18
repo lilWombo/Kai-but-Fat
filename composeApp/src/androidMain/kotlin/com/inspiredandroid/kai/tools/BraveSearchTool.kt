@@ -99,8 +99,12 @@ Requires a Brave Search API key set in Settings > Tools.""",
                     "success" to true,
                     "type" to "image",
                     "results" to body.results.map {
-                        mapOf("title" to it.title, "image_url" to it.url,
-                            "thumbnail_url" to it.thumbnail.src, "source" to it.source)
+                        mapOf(
+                            "title" to it.title,
+                            "image_url" to it.url,
+                            "thumbnail_url" to it.thumbnail.src,
+                            "source" to it.source,
+                        )
                     },
                 )
             } else {

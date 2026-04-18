@@ -93,7 +93,7 @@ Requires an Exa API key in Settings > Tools.""",
         }
         val query = args["query"]?.toString()
             ?: return mapOf("success" to false, "error" to "query is required")
-        val type  = args["type"]?.toString() ?: "neural"
+        val type = args["type"]?.toString() ?: "neural"
         val count = ((args["count"] as? Number)?.toInt() ?: 5).coerceIn(1, 10)
 
         return try {

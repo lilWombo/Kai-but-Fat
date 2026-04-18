@@ -37,14 +37,19 @@ Revise earlier steps with action='revise' and step_number=N. Branch with action=
                 thoughts.add(mapOf("step" to (thoughts.size + 1), "thought" to thought, "type" to "think"))
                 mapOf("success" to true, "step" to thoughts.size, "thought" to thought)
             }
+
             "revise" -> {
                 val idx = ((args["step_number"] as? Number)?.toInt() ?: 0) - 1
                 val thought = args["thought"]?.toString()
                     ?: return mapOf("success" to false, "error" to "thought is required")
                 if (idx < 0 || idx >= thoughts.size) return mapOf("success" to false, "error" to "step_number out of range")
-                thoughts[idx] = thoughts[idx].toMutableMap().also { it["thought"] = thought; it["type"] = "revised" }
+                thoughts[idx] = thoughts[idx].toMutableMap().also {
+                    it["thought"] = thought
+                    it["type"] = "revised"
+                }
                 mapOf("success" to true, "revised_step" to idx + 1)
             }
+
             "branch" -> {
                 val from = ((args["branch_from"] as? Number)?.toInt() ?: 0) - 1
                 val thought = args["thought"]?.toString()
@@ -53,13 +58,20 @@ Revise earlier steps with action='revise' and step_number=N. Branch with action=
                 thoughts.add(mapOf("step" to (thoughts.size + 1), "thought" to thought, "type" to "branch", "branched_from" to from + 1))
                 mapOf("success" to true, "step" to thoughts.size, "branched_from" to from + 1)
             }
+
             "conclude" -> {
                 val conclusion = args["thought"]?.toString() ?: "No conclusion provided."
                 val chain = thoughts.toList()
                 thoughts.clear()
                 mapOf("success" to true, "conclusion" to conclusion, "reasoning_chain" to chain, "total_steps" to chain.size)
             }
-            "reset" -> { val n = thoughts.size; thoughts.clear(); mapOf("success" to true, "cleared_steps" to n) }
+
+            "reset" -> {
+                val n = thoughts.size
+                thoughts.clear()
+                mapOf("success" to true, "cleared_steps" to n)
+            }
+
             else -> mapOf("success" to false, "error" to "Unknown action: $action")
         }
     }

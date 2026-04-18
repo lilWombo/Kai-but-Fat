@@ -72,9 +72,9 @@ Provide a GitHub token in Settings > Tools for higher rate limits and private re
         return try {
             when (val action = args["action"]?.toString()) {
                 "read_file" -> {
-                    val owner  = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
-                    val repo   = args["repo"]?.toString()  ?: return mapOf("success" to false, "error" to "repo required")
-                    val path   = args["path"]?.toString()  ?: return mapOf("success" to false, "error" to "path required")
+                    val owner = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
+                    val repo = args["repo"]?.toString() ?: return mapOf("success" to false, "error" to "repo required")
+                    val path = args["path"]?.toString() ?: return mapOf("success" to false, "error" to "path required")
                     val branch = args["branch"]?.toString() ?: "main"
                     val raw = apiGet("/repos/$owner/$repo/contents/$path?ref=$branch")
                     val obj = json.parseToJsonElement(raw).jsonObject
@@ -82,73 +82,98 @@ Provide a GitHub token in Settings > Tools for higher rate limits and private re
                     val content = String(Base64.getDecoder().decode(encoded))
                     mapOf("success" to true, "path" to path, "content" to content)
                 }
+
                 "list_files" -> {
-                    val owner  = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
-                    val repo   = args["repo"]?.toString()  ?: return mapOf("success" to false, "error" to "repo required")
-                    val path   = args["path"]?.toString() ?: ""
+                    val owner = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
+                    val repo = args["repo"]?.toString() ?: return mapOf("success" to false, "error" to "repo required")
+                    val path = args["path"]?.toString() ?: ""
                     val branch = args["branch"]?.toString() ?: "main"
                     val raw = apiGet("/repos/$owner/$repo/contents/$path?ref=$branch")
                     val arr = json.parseToJsonElement(raw).jsonArray
                     val files = arr.map { it.jsonObject }.map {
-                        mapOf("name" to it["name"]?.jsonPrimitive?.content,
-                              "type" to it["type"]?.jsonPrimitive?.content,
-                              "path" to it["path"]?.jsonPrimitive?.content)
+                        mapOf(
+                            "name" to it["name"]?.jsonPrimitive?.content,
+                            "type" to it["type"]?.jsonPrimitive?.content,
+                            "path" to it["path"]?.jsonPrimitive?.content,
+                        )
                     }
                     mapOf("success" to true, "files" to files)
                 }
+
                 "list_issues" -> {
                     val owner = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
-                    val repo  = args["repo"]?.toString()  ?: return mapOf("success" to false, "error" to "repo required")
+                    val repo = args["repo"]?.toString() ?: return mapOf("success" to false, "error" to "repo required")
                     val label = args["label"]?.toString() ?: ""
                     val count = ((args["count"] as? Number)?.toInt() ?: 10).coerceIn(1, 30)
                     val labelParam = if (label.isNotBlank()) "&labels=$label" else ""
                     val raw = apiGet("/repos/$owner/$repo/issues?state=open&per_page=$count$labelParam")
                     val arr = json.parseToJsonElement(raw).jsonArray
-                    mapOf("success" to true, "issues" to arr.map { it.jsonObject }.map {
-                        mapOf("number" to it["number"]?.jsonPrimitive?.content,
-                              "title"  to it["title"]?.jsonPrimitive?.content,
-                              "state"  to it["state"]?.jsonPrimitive?.content,
-                              "url"    to it["html_url"]?.jsonPrimitive?.content)
-                    })
+                    mapOf(
+                        "success" to true,
+                        "issues" to arr.map { it.jsonObject }.map {
+                            mapOf(
+                                "number" to it["number"]?.jsonPrimitive?.content,
+                                "title" to it["title"]?.jsonPrimitive?.content,
+                                "state" to it["state"]?.jsonPrimitive?.content,
+                                "url" to it["html_url"]?.jsonPrimitive?.content,
+                            )
+                        },
+                    )
                 }
+
                 "list_prs" -> {
                     val owner = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
-                    val repo  = args["repo"]?.toString()  ?: return mapOf("success" to false, "error" to "repo required")
+                    val repo = args["repo"]?.toString() ?: return mapOf("success" to false, "error" to "repo required")
                     val count = ((args["count"] as? Number)?.toInt() ?: 10).coerceIn(1, 30)
                     val raw = apiGet("/repos/$owner/$repo/pulls?state=open&per_page=$count")
                     val arr = json.parseToJsonElement(raw).jsonArray
-                    mapOf("success" to true, "pull_requests" to arr.map { it.jsonObject }.map {
-                        mapOf("number" to it["number"]?.jsonPrimitive?.content,
-                              "title"  to it["title"]?.jsonPrimitive?.content,
-                              "url"    to it["html_url"]?.jsonPrimitive?.content,
-                              "branch" to it["head"]?.jsonObject?.get("ref")?.jsonPrimitive?.content)
-                    })
+                    mapOf(
+                        "success" to true,
+                        "pull_requests" to arr.map { it.jsonObject }.map {
+                            mapOf(
+                                "number" to it["number"]?.jsonPrimitive?.content,
+                                "title" to it["title"]?.jsonPrimitive?.content,
+                                "url" to it["html_url"]?.jsonPrimitive?.content,
+                                "branch" to it["head"]?.jsonObject?.get("ref")?.jsonPrimitive?.content,
+                            )
+                        },
+                    )
                 }
+
                 "get_issue" -> {
-                    val owner  = args["owner"]?.toString()  ?: return mapOf("success" to false, "error" to "owner required")
-                    val repo   = args["repo"]?.toString()   ?: return mapOf("success" to false, "error" to "repo required")
+                    val owner = args["owner"]?.toString() ?: return mapOf("success" to false, "error" to "owner required")
+                    val repo = args["repo"]?.toString() ?: return mapOf("success" to false, "error" to "repo required")
                     val number = (args["number"] as? Number)?.toInt() ?: return mapOf("success" to false, "error" to "number required")
                     val raw = apiGet("/repos/$owner/$repo/issues/$number")
                     val obj = json.parseToJsonElement(raw).jsonObject
-                    mapOf("success" to true,
-                          "number" to number,
-                          "title"  to obj["title"]?.jsonPrimitive?.content,
-                          "body"   to obj["body"]?.jsonPrimitive?.content,
-                          "state"  to obj["state"]?.jsonPrimitive?.content,
-                          "url"    to obj["html_url"]?.jsonPrimitive?.content)
+                    mapOf(
+                        "success" to true,
+                        "number" to number,
+                        "title" to obj["title"]?.jsonPrimitive?.content,
+                        "body" to obj["body"]?.jsonPrimitive?.content,
+                        "state" to obj["state"]?.jsonPrimitive?.content,
+                        "url" to obj["html_url"]?.jsonPrimitive?.content,
+                    )
                 }
+
                 "search_code" -> {
                     val query = args["query"]?.toString() ?: return mapOf("success" to false, "error" to "query required")
                     val raw = apiGet("/search/code?q=${java.net.URLEncoder.encode(query, "UTF-8")}&per_page=10")
                     val obj = json.parseToJsonElement(raw).jsonObject
                     val items = obj["items"]?.jsonArray ?: JsonArray(emptyList())
-                    mapOf("success" to true, "results" to items.map { it.jsonObject }.map {
-                        mapOf("name" to it["name"]?.jsonPrimitive?.content,
-                              "path" to it["path"]?.jsonPrimitive?.content,
-                              "url"  to it["html_url"]?.jsonPrimitive?.content,
-                              "repo" to it["repository"]?.jsonObject?.get("full_name")?.jsonPrimitive?.content)
-                    })
+                    mapOf(
+                        "success" to true,
+                        "results" to items.map { it.jsonObject }.map {
+                            mapOf(
+                                "name" to it["name"]?.jsonPrimitive?.content,
+                                "path" to it["path"]?.jsonPrimitive?.content,
+                                "url" to it["html_url"]?.jsonPrimitive?.content,
+                                "repo" to it["repository"]?.jsonObject?.get("full_name")?.jsonPrimitive?.content,
+                            )
+                        },
+                    )
                 }
+
                 else -> mapOf("success" to false, "error" to "Unknown action: $action")
             }
         } catch (e: Exception) {

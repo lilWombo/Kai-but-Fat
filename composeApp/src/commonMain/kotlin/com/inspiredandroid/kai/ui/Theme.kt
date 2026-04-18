@@ -58,7 +58,6 @@ val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF000000),
 )
 
-
 /** Midnight Ocean — deep navy + cyan accent */
 val MidnightOceanColorScheme = darkColorScheme(
     primary = Color(0xFF00E5FF),
@@ -140,13 +139,13 @@ enum class AppTheme(val displayName: String) {
 }
 
 fun AppTheme.toColorScheme(isSystemDark: Boolean): ColorScheme = when (this) {
-    AppTheme.DEFAULT        -> if (isSystemDark) DarkColorScheme else LightColorScheme
+    AppTheme.DEFAULT -> if (isSystemDark) DarkColorScheme else LightColorScheme
     AppTheme.MIDNIGHT_OCEAN -> MidnightOceanColorScheme
-    AppTheme.EMBER          -> EmberColorScheme
-    AppTheme.FOREST         -> ForestColorScheme
-    AppTheme.ROSE_GOLD      -> RoseGoldColorScheme
-    AppTheme.SLATE          -> SlateColorScheme
-    AppTheme.LIGHT          -> LightColorScheme
+    AppTheme.EMBER -> EmberColorScheme
+    AppTheme.FOREST -> ForestColorScheme
+    AppTheme.ROSE_GOLD -> RoseGoldColorScheme
+    AppTheme.SLATE -> SlateColorScheme
+    AppTheme.LIGHT -> LightColorScheme
 }
 
 @Composable

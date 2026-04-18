@@ -144,7 +144,6 @@ class AndroidSandboxController : SandboxController {
     }
 }
 
-
 private fun sanitizeErrorMessage(raw: String): String {
     // Strip bare URLs from error messages — show them only to logcat, not the user
     if (raw.startsWith("http://") || raw.startsWith("https://")) {

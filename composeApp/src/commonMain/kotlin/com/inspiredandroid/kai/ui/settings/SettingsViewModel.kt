@@ -1,7 +1,5 @@
 package com.inspiredandroid.kai.ui.settings
 
-import com.inspiredandroid.kai.ui.AppTheme
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inspiredandroid.kai.DaemonController
@@ -27,6 +25,7 @@ import com.inspiredandroid.kai.network.OpenAICompatibleRateLimitExceededExceptio
 import com.inspiredandroid.kai.network.dtos.SponsorsResponseDto
 import com.inspiredandroid.kai.platformName
 import com.inspiredandroid.kai.tools.NotificationPermissionController
+import com.inspiredandroid.kai.ui.AppTheme
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get

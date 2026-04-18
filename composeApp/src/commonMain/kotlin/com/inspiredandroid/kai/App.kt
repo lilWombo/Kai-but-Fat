@@ -4,8 +4,6 @@ package com.inspiredandroid.kai
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import com.inspiredandroid.kai.ui.toColorScheme
-import com.inspiredandroid.kai.ui.AppTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -39,11 +37,13 @@ import com.inspiredandroid.kai.tools.CalendarPermissionController
 import com.inspiredandroid.kai.tools.NotificationPermissionController
 import com.inspiredandroid.kai.tools.SetupCalendarPermissionHandler
 import com.inspiredandroid.kai.tools.SetupNotificationPermissionHandler
+import com.inspiredandroid.kai.ui.AppTheme
 import com.inspiredandroid.kai.ui.Theme
 import com.inspiredandroid.kai.ui.chat.ChatScreen
 import com.inspiredandroid.kai.ui.chat.ChatViewModel
 import com.inspiredandroid.kai.ui.handCursor
 import com.inspiredandroid.kai.ui.settings.SettingsScreen
+import com.inspiredandroid.kai.ui.toColorScheme
 import kai.composeapp.generated.resources.Res
 import kai.composeapp.generated.resources.tab_chat
 import kai.composeapp.generated.resources.tab_settings
