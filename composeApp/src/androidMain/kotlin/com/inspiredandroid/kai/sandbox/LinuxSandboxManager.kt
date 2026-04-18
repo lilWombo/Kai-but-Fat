@@ -167,6 +167,7 @@ class LinuxSandboxManager(private val context: Context) {
         val overlays = mapOf(
             "dpkg-state" to "var/lib/dpkg",
             "apt-cache" to "var/cache/apt",
+            "var-log" to "var/log",
         )
         overlays.forEach { (hostDir, rootfsRelPath) ->
             val hostOverlay = File(sandboxDir, hostDir)
@@ -190,7 +191,7 @@ class LinuxSandboxManager(private val context: Context) {
         val overlays = mapOf(
             "dpkg-state" to "var/lib/dpkg",
             "apt-cache" to "var/cache/apt",
-            "apt-log" to "var/log/apt",
+            "var-log" to "var/log",
         )
         overlays.forEach { (hostDir, rootfsRelPath) ->
             val hostOverlay = File(sandboxDir, hostDir)
@@ -237,19 +238,35 @@ class LinuxSandboxManager(private val context: Context) {
                 _state.value = SandboxState.Installing("Preparing package manager...")
                 resetWritableOverlays(File(rootfsPath))
 
-                // Remove stale lock files (belt-and-suspenders after overlay reset)
+                // Remove stale lock files and forcefully clean updates/
                 executor.execute(
-                    "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend " +
-                        "/var/lib/dpkg/updates/* /var/cache/apt/archives/lock",
+                    "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock && " +
+                        "rm -rf /var/lib/dpkg/updates && mkdir -p /var/lib/dpkg/updates",
                     timeoutSeconds = 10,
                 )
 
-                // Now run dpkg --configure -a — safe because the bind mount gives
-                // dpkg a fully writable /var/lib/dpkg, and updates/ is empty.
-                executor.execute(
+                // Run dpkg --configure -a and stop immediately if it fails.
+                val cfgResult = executor.execute(
                     "DEBIAN_FRONTEND=noninteractive dpkg --configure -a",
                     timeoutSeconds = 60,
                 )
+                if (cfgResult["success"] != true) {
+                    val err = cfgResult["stderr"] as? String ?: ""
+                    val out = cfgResult["stdout"] as? String ?: ""
+                    _state.value = SandboxState.Error("dpkg configure failed: ${err.ifEmpty { out }.take(200)}")
+                    return@launch
+                }
+
+                val updateResult = executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive apt-get update",
+                    timeoutSeconds = 120,
+                )
+                if (updateResult["success"] != true) {
+                    val err = updateResult["stderr"] as? String ?: ""
+                    val out = updateResult["stdout"] as? String ?: ""
+                    _state.value = SandboxState.Error("apt update failed: ${err.ifEmpty { out }.take(200)}")
+                    return@launch
+                }
 
                 for (pkg in packages) {
                     ensureActive()
