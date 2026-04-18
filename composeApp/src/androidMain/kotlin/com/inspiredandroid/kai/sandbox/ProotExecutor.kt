@@ -143,7 +143,7 @@ class ProotExecutor(
         // proot sees a freshly created, app-owned dir that it can write freely.
         "--bind=$libDir/dpkg-state:/var/lib/dpkg",
         "--bind=$libDir/apt-cache:/var/cache/apt",
-        "--bind=$libDir/apt-log:/var/log/apt",
+        "--bind=$libDir/var-log:/var/log",
         "-0",
         "-w", workingDir,
         "/bin/sh", "-c", command,
