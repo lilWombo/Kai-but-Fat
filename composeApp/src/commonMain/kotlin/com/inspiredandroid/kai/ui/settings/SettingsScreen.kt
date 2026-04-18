@@ -1750,10 +1750,13 @@ private fun GeneralContent(uiState: SettingsUiState) {
 @Composable
 private fun IntegrationsContent(
     splinterlandsViewModel: SplinterlandsViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel(),
 ) {
     val splinterlandsState by splinterlandsViewModel.state.collectAsState()
+    val settingsState by settingsViewModel.state.collectAsState()
     LaunchedEffect(Unit) { splinterlandsViewModel.onScreenVisible() }
 
+    val enabledToolIds = settingsState.tools.filter { it.isEnabled }.map { it.id }.toSet()
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         if (splinterlandsState.showSplinterlandsSection) {
@@ -1806,108 +1809,126 @@ private fun IntegrationsContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = "Suggested Automations",
+                    text = "One-Tap Integrations",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    text = "Enable these in Tools + MCP to unlock AI-driven automations.",
+                    text = "Tap Enable to activate the required tools for each automation.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83D\uDD14",
                     title = "Smart Notifications",
-                    description = "AI monitors topics and pushes alerts when relevant news breaks. Needs: Brave Search + Notifications tool.",
+                    description = "AI monitors topics and pushes alerts when relevant news breaks.",
+                    requiredTools = listOf("brave_search", "send_notification"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("brave_search", true)
+                        settingsState.onToggleTool("send_notification", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83D\uDCC5",
                     title = "Calendar Assistant",
-                    description = "Auto-creates calendar events from conversations and emails. Needs: Calendar tool + Email tool.",
+                    description = "Auto-creates calendar events from conversations and emails.",
+                    requiredTools = listOf("create_calendar_event"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("create_calendar_event", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83D\uDDBC\uFE0F",
                     title = "Image Research",
-                    description = "Find, compare, and summarise images from any search query. Needs: Brave Search or SerpApi (image mode).",
+                    description = "Find, compare and summarise images from any search query.",
+                    requiredTools = listOf("brave_search"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("brave_search", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83D\uDC0D",
                     title = "Code Runner",
-                    description = "Execute Python, Node.js, or shell scripts inline. Needs: Debian Linux sandbox + Shell Command tool.",
+                    description = "Execute Python, Node.js or shell scripts via the Linux sandbox.",
+                    requiredTools = listOf("shell_command"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("shell_command", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83E\uDDE0",
                     title = "Persistent Memory Agent",
-                    description = "AI remembers facts across sessions and surfaces them proactively. Needs: Memory MCP + Heartbeat.",
+                    description = "AI remembers facts across sessions and surfaces them proactively.",
+                    requiredTools = listOf("vector_memory"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("vector_memory", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83D\uDCF0",
                     title = "Daily Digest",
-                    description = "Scheduled morning briefing from HackerNews + Brave Search. Needs: HackerNews MCP + Scheduling tool.",
+                    description = "Scheduled morning briefing via Heartbeat and web search.",
+                    requiredTools = listOf("brave_search"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("brave_search", true)
+                    },
                 )
-                SuggestionItem(
+                IntegrationItem(
                     emoji = "\uD83C\uDF10",
                     title = "Web Scraper",
-                    description = "Fetch, parse, and summarise any URL. Needs: Fetch MCP or Playwright Browser MCP.",
+                    description = "Fetch, parse and summarise any URL — no browser required.",
+                    requiredTools = listOf("fetch_url"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("fetch_url", true)
+                    },
                 )
-            }
-        }
-    }
-}
+                IntegrationItem(
+                    emoji = "\uD83D\uDC99",
+                    title = "GitHub Assistant",
+                    description = "Read repos, issues, PRs and files from any GitHub repository.",
+                    requiredTools = listOf("github"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("github", true)
+                    },
+                )
+                IntegrationItem(
+                    emoji = "\uD83D\uDD0D",
+                    title = "Neural Web Search",
+                    description = "Exa AI understands meaning, not just keywords — ideal for research.",
+                    requiredTools = listOf("exa_search"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("exa_search", true)
+                    },
+                )
+                IntegrationItem(
+                    emoji = "\uD83E\uDDF9",
+                    title = "Deep Web Crawl",
+                    description = "JS-aware scrape and extract structured data from any site.",
+                    requiredTools = listOf("firecrawl"),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
+                        settingsState.onToggleTool("firecrawl", true)
+                    },
+                )
+                IntegrationItem(
+                    emoji = "\uD83E\uDD14",
+                    title = "Step-by-Step Reasoning",
+                    description = "Multi-step reasoning with revision and branching — always active.",
+                    requiredTools = listOf(),
+                    enabledToolIds = enabledToolIds,
+                    onEnableAll = {
 
-@Composable
-private fun SuggestionItem(
-    emoji: String,
-    title: String,
-    description: String,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(text = emoji, style = MaterialTheme.typography.titleLarge)
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExportImportSection(
-    onExportSettings: () -> String,
-    onImportSettings: (ByteArray, Set<ImportSection>, Boolean) -> ImportResult,
-) {
-    val isPreview = LocalInspectionMode.current
-    val scope = rememberCoroutineScope()
-    var importResult by remember { mutableStateOf<ImportResult?>(null) }
-    var importPreview by remember { mutableStateOf<Pair<String, Map<ImportSection, String?>>?>(null) }
-
-    val filePickerLauncher = if (!isPreview) {
-        rememberFilePickerLauncher(
-            type = FileKitType.File(extensions = listOf("json")),
-        ) { file ->
-            if (file != null) {
-                scope.launch {
-                    val bytes = file.readBytes()
-                    try {
-                        val jsonString = bytes.decodeToString()
-                        val jsonObject = SharedJson.parseToJsonElement(jsonString).jsonObject
-                        val detectedSections = detectImportSections(jsonObject)
-                        importPreview = jsonString to detectedSections
-                    } catch (_: Exception) {
-                        importResult = ImportResult.Failure
-                    }
-                }
+                    },
+                )
             }
         }
     } else {
