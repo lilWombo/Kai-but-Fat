@@ -269,6 +269,13 @@ class FakeDataRepository : DataRepository {
     override fun setToolEnabled(toolId: String, enabled: Boolean) {
     }
 
+    override fun getTavilyApiKey(): String = ""
+    override fun setTavilyApiKey(key: String) {}
+    override fun getBraveApiKey(): String = ""
+    override fun setBraveApiKey(key: String) {}
+    override fun getSerpApiKey(): String = ""
+    override fun setSerpApiKey(key: String) {}
+
     // MCP servers
     private val mcpServers = mutableListOf<McpServerConfig>()
     private val mcpConnected = mutableSetOf<String>()
