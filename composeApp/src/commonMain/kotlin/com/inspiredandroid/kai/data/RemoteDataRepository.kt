@@ -1623,6 +1623,15 @@ class RemoteDataRepository(
     override fun getSerpApiKey(): String = appSettings.getSerpApiKey()
     override fun setSerpApiKey(key: String) = appSettings.setSerpApiKey(key)
 
+    override fun getExaApiKey(): String = appSettings.getExaApiKey()
+    override fun setExaApiKey(key: String) = appSettings.setExaApiKey(key)
+
+    override fun getGitHubToken(): String = appSettings.getGitHubToken()
+    override fun setGitHubToken(key: String) = appSettings.setGitHubToken(key)
+
+    override fun getFirecrawlApiKey(): String = appSettings.getFirecrawlApiKey()
+    override fun setFirecrawlApiKey(key: String) = appSettings.setFirecrawlApiKey(key)
+
     // MCP servers
     override fun getMcpServers(): List<McpServerConfig> = mcpServerManager.getServers()
 
