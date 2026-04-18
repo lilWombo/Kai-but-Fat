@@ -90,4 +90,39 @@ val popularMcpServers = listOf(
         url = "https://remote.mcpservers.org/sequentialthinking/mcp",
         description = "Structured step-by-step reasoning and problem-solving",
     ),
+    PopularMcpServer(
+        name = "Slack",
+        url = "https://remote.mcpservers.org/slack/mcp",
+        description = "Send messages and notifications to Slack channels",
+    ),
+    PopularMcpServer(
+        name = "GitHub",
+        url = "https://remote.mcpservers.org/github/mcp",
+        description = "Browse repos, issues, PRs and file contents",
+    ),
+    PopularMcpServer(
+        name = "Git",
+        url = "https://remote.mcpservers.org/git/mcp",
+        description = "Git operations: diffs, commits, branches, log, blame",
+    ),
+    PopularMcpServer(
+        name = "Postgres",
+        url = "https://remote.mcpservers.org/postgres/mcp",
+        description = "Read-only PostgreSQL access with schema inspection and SQL queries",
+    ),
+    PopularMcpServer(
+        name = "Puppeteer",
+        url = "https://remote.mcpservers.org/puppeteer/mcp",
+        description = "Browser automation: UI tests, web scraping, screenshots",
+    ),
+    PopularMcpServer(
+        name = "Memory",
+        url = "https://remote.mcpservers.org/memory/mcp",
+        description = "Persistent knowledge-graph memory across sessions",
+    ),
+    PopularMcpServer(
+        name = "Filesystem",
+        url = "https://remote.mcpservers.org/filesystem/mcp",
+        description = "Secure read/write/list on local project files",
+    ),
 )
