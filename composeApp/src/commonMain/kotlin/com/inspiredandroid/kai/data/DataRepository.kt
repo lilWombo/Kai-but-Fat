@@ -59,6 +59,12 @@ interface DataRepository {
     // Tool management
     fun getToolDefinitions(): List<ToolInfo>
     fun setToolEnabled(toolId: String, enabled: Boolean)
+    fun getTavilyApiKey(): String
+    fun setTavilyApiKey(key: String)
+    fun getBraveApiKey(): String
+    fun setBraveApiKey(key: String)
+    fun getSerpApiKey(): String
+    fun setSerpApiKey(key: String)
 
     // MCP servers
     fun getMcpServers(): List<McpServerConfig>
