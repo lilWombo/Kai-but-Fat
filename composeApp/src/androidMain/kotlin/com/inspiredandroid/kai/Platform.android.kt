@@ -40,6 +40,8 @@ import com.inspiredandroid.kai.tools.OllamaTool
 import com.inspiredandroid.kai.tools.ProcessManagerTool
 import com.inspiredandroid.kai.tools.SchedulingTools
 import com.inspiredandroid.kai.tools.SequentialThinkingTool
+import com.inspiredandroid.kai.tools.SelfAddMcpTool
+import com.inspiredandroid.kai.tools.SelfEnableToolTool
 import com.inspiredandroid.kai.tools.SerpApiTool
 import com.inspiredandroid.kai.tools.ShellCommandTool
 import com.inspiredandroid.kai.tools.TavilySearchTool
@@ -189,6 +191,8 @@ actual fun getPlatformToolDefinitions(): List<ToolInfo> = CommonTools.commonTool
     GitHubTool.toolInfo,
     FirecrawlTool.toolInfo,
     SequentialThinkingTool.toolInfo,
+    SelfAddMcpTool.toolInfo,
+    SelfEnableToolTool.toolInfo,
     ToolInfo(
         id = "vector_memory",
         name = "Vector Memory (ChromaDB)",
@@ -443,6 +447,8 @@ actual fun getAvailableTools(): List<Tool> {
             add(FirecrawlTool)
         }
         add(SequentialThinkingTool)
+        add(SelfAddMcpTool)
+        add(SelfEnableToolTool)
         if (appSettings.isToolEnabled(VectorMemoryTool.schema.name)) {
             add(VectorMemoryTool)
         }
