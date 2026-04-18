@@ -246,6 +246,7 @@ class LinuxSandboxManager(private val context: Context) {
 
                 _state.value = SandboxState.Installing("Preparing package manager...")
                 prepareWritableOverlays(File(rootfsPath))
+                downloader.writeResolvConf(File(rootfsPath)) // re-seed on every attempt
 
                 executor.execute(
                     "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock && " +
