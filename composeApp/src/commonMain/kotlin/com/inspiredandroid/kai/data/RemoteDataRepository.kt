@@ -1616,6 +1616,13 @@ class RemoteDataRepository(
         appSettings.setToolEnabled(toolId, enabled)
     }
 
+    override fun getTavilyApiKey(): String = appSettings.getTavilyApiKey()
+    override fun setTavilyApiKey(key: String) = appSettings.setTavilyApiKey(key)
+    override fun getBraveApiKey(): String = appSettings.getBraveApiKey()
+    override fun setBraveApiKey(key: String) = appSettings.setBraveApiKey(key)
+    override fun getSerpApiKey(): String = appSettings.getSerpApiKey()
+    override fun setSerpApiKey(key: String) = appSettings.setSerpApiKey(key)
+
     // MCP servers
     override fun getMcpServers(): List<McpServerConfig> = mcpServerManager.getServers()
 
