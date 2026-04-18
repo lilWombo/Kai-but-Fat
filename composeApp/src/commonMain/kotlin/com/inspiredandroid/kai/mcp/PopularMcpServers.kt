@@ -82,12 +82,12 @@ val popularMcpServers = listOf(
     ),
     PopularMcpServer(
         name = "Fetch",
-        url = "https://mcp.jina.ai/v1",
+        url = "https://remote.mcpservers.org/fetch/mcp",
         description = "Fetch any URL and convert to clean markdown for AI reading",
     ),
     PopularMcpServer(
         name = "Sequential Thinking",
-        url = "https://mcp.glama.ai/sequentialthinking/mcp",
+        url = "https://remote.mcpservers.org/sequentialthinking/mcp",
         description = "Structured step-by-step reasoning and problem-solving",
     ),
 )
