@@ -1,4 +1,19 @@
-package com.inspiredandroid.kai.ui.settings
+
+
+    private fun onChangeTavilyApiKey(key: String) {
+        dataRepository.setTavilyApiKey(key)
+        _state.update { it.copy(tavilyApiKey = key) }
+    }
+
+    private fun onChangeBraveApiKey(key: String) {
+        dataRepository.setBraveApiKey(key)
+        _state.update { it.copy(braveApiKey = key) }
+    }
+
+    private fun onChangeSerpApiKey(key: String) {
+        dataRepository.setSerpApiKey(key)
+        _state.update { it.copy(serpApiKey = key) }
+    }package com.inspiredandroid.kai.ui.settings
 
 import com.inspiredandroid.kai.ui.AppTheme
 
@@ -71,6 +86,12 @@ class SettingsViewModel(
         onChangeBaseUrl = ::onChangeBaseUrl,
         onSelectModel = ::onSelectModel,
         onToggleTool = ::onToggleTool,
+        tavilyApiKey = dataRepository.getTavilyApiKey(),
+        onChangeTavilyApiKey = ::onChangeTavilyApiKey,
+        braveApiKey = dataRepository.getBraveApiKey(),
+        onChangeBraveApiKey = ::onChangeBraveApiKey,
+        serpApiKey = dataRepository.getSerpApiKey(),
+        onChangeSerpApiKey = ::onChangeSerpApiKey,
         soulText = dataRepository.getSoulText(),
         onSaveSoul = ::onSaveSoul,
         isDynamicUiEnabled = dataRepository.isDynamicUiEnabled(),
@@ -518,6 +539,21 @@ class SettingsViewModel(
                 }.toImmutableList(),
             )
         }
+    }
+
+    private fun onChangeTavilyApiKey(key: String) {
+        dataRepository.setTavilyApiKey(key)
+        _state.update { it.copy(tavilyApiKey = key) }
+    }
+
+    private fun onChangeBraveApiKey(key: String) {
+        dataRepository.setBraveApiKey(key)
+        _state.update { it.copy(braveApiKey = key) }
+    }
+
+    private fun onChangeSerpApiKey(key: String) {
+        dataRepository.setSerpApiKey(key)
+        _state.update { it.copy(serpApiKey = key) }
     }
 
     // MCP server management
