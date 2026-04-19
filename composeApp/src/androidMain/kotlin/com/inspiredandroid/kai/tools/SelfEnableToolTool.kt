@@ -18,9 +18,9 @@ object SelfEnableToolTool : Tool {
 
     override val schema = ToolSchema(
         name = "set_tool_enabled",
-        description = """Enable or disable one of your own tools by its ID.
-Use to activate tools you need for a task before using them.
-Changes persist across sessions.
+        description = """
+Enable or disable one of your own tools by its ID.
+Use to activate tools you need for a task before using them. Changes persist across sessions.
 Common tool IDs: brave_search, web_search, exa_search, fetch_url, github,
                  firecrawl, tavily_search, shell_command, parse_code,
                  send_notification, create_calendar_event, set_alarm,
@@ -45,7 +45,7 @@ Common tool IDs: brave_search, web_search, exa_search, fetch_url, github,
             "success" to true,
             "tool_id" to toolId,
             "enabled" to enabled,
-            "message" to "Tool \"$toolId\" is now $state.",
+            "message" to "Tool '$toolId' is now $state.",
         )
     }
 
