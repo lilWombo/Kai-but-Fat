@@ -345,10 +345,11 @@ class RootfsDownloader {
         // Download and parse Packages.gz to build a package index
         val packagesIndex = mutableMapOf<String, PackageInfo>()
         for (suite in listOf("bookworm/main", "bookworm-updates/main", "bookworm-security/main")) {
-            val baseUrl = if (suite.startsWith("bookworm-security"))
+            val baseUrl = if (suite.startsWith("bookworm-security")) {
                 "https://security.debian.org/debian-security/dists/bookworm-security/main/binary-$debArch/Packages.gz"
-            else
+            } else {
                 "https://deb.debian.org/debian/dists/${suite.substringBefore("/")}/main/binary-$debArch/Packages.gz"
+            }
             try {
                 val gz = downloadBytes(baseUrl)
                 parsePackagesGz(gz, packagesIndex)
@@ -414,12 +415,21 @@ class RootfsDownloader {
         val text = java.util.zip.GZIPInputStream(gz.inputStream()).use {
             it.readBytes().toString(Charsets.UTF_8)
         }
-        var name = ""; var filename = ""; var depends = ""
+        var name = ""
+        var filename = ""
+        var depends = ""
         for (line in text.lineSequence()) {
             when {
-                line.startsWith("Package: ") -> { name = line.substring(9).trim(); filename = ""; depends = "" }
+                line.startsWith("Package: ") -> {
+                    name = line.substring(9).trim()
+                    filename = ""
+                    depends = ""
+                }
+
                 line.startsWith("Filename: ") -> filename = line.substring(10).trim()
-                line.startsWith("Depends: ")  -> depends = line.substring(9).trim()
+
+                line.startsWith("Depends: ") -> depends = line.substring(9).trim()
+
                 line.isBlank() && name.isNotBlank() && filename.isNotBlank() -> {
                     index[name] = PackageInfo(name, filename, depends)
                     name = ""
@@ -429,5 +439,4 @@ class RootfsDownloader {
     }
 
     private data class PackageInfo(val name: String, val filename: String, val depends: String)
-
 }
