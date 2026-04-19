@@ -144,6 +144,9 @@ class ProotExecutor(
         // Do NOT bind-mount the host resolv.conf — guest path may not exist on first boot.
         // Bind /etc/hosts so hostname resolution works inside proot.
         "-b", "/etc/hosts:/etc/hosts",
+        // Bind Android's DNS proxy socket so getaddrinfo() inside proot
+        // resolves hostnames via the app's own network stack.
+        "-b", "/dev/socket/dnsproxyd:/dev/socket/dnsproxyd",
         "-b", "$homePath:/root",
         "-b", "$tmpPath:/tmp",
         // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.
@@ -168,6 +171,9 @@ class ProotExecutor(
             "LD_LIBRARY_PATH=$libDir",
             "PROOT_TMP_DIR=$tmpPath",
             "PROOT_LOADER=$loaderPath",
+            // Force proot to use netlink socket emulation — bypasses Android's
+            // netd restriction that blocks raw sockets from exec'd child processes.
+            "PROOT_FORCE_NETLINK=1",
         )
         return baseEnv + extraEnv.map { (k, v) -> "$k=$v" }.toTypedArray()
     }
