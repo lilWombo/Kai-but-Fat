@@ -255,8 +255,6 @@ class LinuxSandboxManager(private val context: Context) {
         if (currentJob?.isActive == true) return
         // ca-certificates must be first so HTTPS works for subsequent packages.
         // busybox provides a minimal wget/curl fallback even before the real ones install.
-        // No bootstrap packages needed — we use plain HTTP repos so ca-certificates
-        // is unnecessary, and busybox is in Debian contrib (not main).
         val bootstrapPackages = emptyList<String>()
         val mainPackages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
@@ -277,50 +275,56 @@ class LinuxSandboxManager(private val context: Context) {
                     timeoutSeconds = 60,
                 )
 
-                _state.value = SandboxState.Installing("Updating package lists...")
-                // Remove any leftover .list files in sources.list.d to prevent duplicates.
-                executor.execute(
-                    "rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources",
-                    timeoutSeconds = 5,
+                // Download .deb files via the Java network stack (bypasses proot network
+                // restrictions — proot child processes cannot reach external hosts on Android).
+                val archivesDir = File(sandboxDir, "apt-cache/archives")
+                val allPackages = bootstrapPackages + mainPackages
+                _state.value = SandboxState.Installing("Fetching package index...")
+                val downloaded = downloader.downloadAndCachePackages(
+                    packages = allPackages,
+                    archivesDir = archivesDir,
+                    arch = getLinuxArch(),
+                    onProgress = { cur, total, pkg ->
+                        _state.value = SandboxState.Installing("Downloading $pkg ($cur/$total)...")
+                    },
                 )
-                val updateResult = executor.execute(
-                    "DEBIAN_FRONTEND=noninteractive apt-get update --allow-insecure-repositories -o Acquire::Check-Valid-Until=false",
-                    timeoutSeconds = 180,
-                )
-                // apt-get update exits 0 even on partial failure — verify the index
-                // actually populated by checking ca-certificates is resolvable.
-                val updateOut = (updateResult["stdout"] as? String ?: "") +
-                    (updateResult["stderr"] as? String ?: "")
-                if (updateResult["success"] != true) {
-                    _state.value = SandboxState.Error("apt update failed: ${updateOut.take(400)}")
+                ensureActive()
+                if (downloaded.isEmpty()) {
+                    _state.value = SandboxState.Error(
+                        "Failed to download packages. Please check your internet connection and try again.",
+                    )
                     return@launch
                 }
-                // Log the update output for diagnostics.
-                android.util.Log.d("LinuxSandbox", "apt-get update output: ${updateOut.take(800)}")
 
-                for (pkg in bootstrapPackages + mainPackages) {
-                    ensureActive()
-                    _state.value = SandboxState.Installing("Installing $pkg...")
-                    val result = executor.execute(
-                        "DEBIAN_FRONTEND=noninteractive apt-get install -y " +
-                            "--allow-unauthenticated " +
-                            "--no-install-recommends " +
-                            "-o Dpkg::Options::=\"--force-confdef\" " +
-                            "-o Dpkg::Options::=\"--force-confold\" $pkg",
-                        timeoutSeconds = 180,
+                _state.value = SandboxState.Installing("Installing packages...")
+                // Install all downloaded .deb files in one dpkg -i call (fastest, handles deps)
+                val debPaths = downloaded.joinToString(" ") { "/var/cache/apt/archives/${it.name}" }
+                val installResult = executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive dpkg -i --force-all --force-depends $debPaths",
+                    timeoutSeconds = 300,
+                )
+                ensureActive()
+                if (installResult["success"] != true) {
+                    // dpkg -i exits non-zero if some packages have unmet deps but
+                    // still installs what it can. Run --configure -a to finish setup.
+                    android.util.Log.w("LinuxSandbox", "dpkg -i partial: ${installResult["stderr"]}")
+                }
+
+                // Configure any unpacked-but-not-configured packages
+                executor.execute(
+                    "DEBIAN_FRONTEND=noninteractive dpkg --force-all --configure -a",
+                    timeoutSeconds = 120,
+                )
+                ensureActive()
+
+                // Verify the most critical binary exists
+                val verifyResult = executor.execute("bash --version", timeoutSeconds = 10)
+                if (verifyResult["success"] != true) {
+                    _state.value = SandboxState.Error(
+                        "Installation incomplete — bash not found after dpkg. " +
+                            (installResult["stderr"] as? String ?: "").take(300),
                     )
-                    ensureActive()
-                    val success = result["success"] as? Boolean ?: false
-                    if (!success) {
-                        val stderr = result["stderr"] as? String ?: ""
-                        val stdout = result["stdout"] as? String ?: ""
-                        val error = result["error"] as? String ?: ""
-                        val timedOut = result["timed_out"] as? Boolean ?: false
-                        val exitCode = result["exit_code"] as? Int ?: -1
-                        android.util.Log.e("LinuxSandbox", "Failed to install $pkg: exit=$exitCode timedOut=$timedOut error=$error stdout=$stdout stderr=$stderr")
-                        _state.value = SandboxState.Error("Failed to install $pkg: ${stderr.ifEmpty { error }.ifEmpty { stdout }.take(300)}")
-                        return@launch
-                    }
+                    return@launch
                 }
                 _state.value = SandboxState.Ready
             } catch (_: kotlinx.coroutines.CancellationException) {
