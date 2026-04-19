@@ -166,7 +166,12 @@ class LinuxSandboxManager(private val context: Context) {
             val rootfsSource = File(rootfsDir, rootfsRelPath)
 
             // Seed from rootfs only on first time — never delete an existing overlay.
-            if (!hostOverlay.exists()) {
+            // Exception: apt-lists is always wiped so stale package indices
+            // never cause "no installation candidate" after a failed update.
+            if (hostDir == "apt-lists") {
+                hostOverlay.deleteRecursively()
+                hostOverlay.mkdirs()
+            } else if (!hostOverlay.exists()) {
                 if (rootfsSource.exists()) {
                     rootfsSource.copyRecursively(hostOverlay, overwrite = true)
                 } else {
@@ -268,10 +273,20 @@ class LinuxSandboxManager(private val context: Context) {
                     "DEBIAN_FRONTEND=noninteractive apt-get update --allow-insecure-repositories -o Acquire::Check-Valid-Until=false",
                     timeoutSeconds = 180,
                 )
+                // apt-get update exits 0 even on partial failure — verify the index
+                // actually populated by checking ca-certificates is resolvable.
+                val updateOut = (updateResult["stdout"] as? String ?: "") +
+                    (updateResult["stderr"] as? String ?: "")
                 if (updateResult["success"] != true) {
-                    val err = updateResult["stderr"] as? String ?: ""
-                    val out = updateResult["stdout"] as? String ?: ""
-                    _state.value = SandboxState.Error("apt update failed: ${err.ifEmpty { out }.take(300)}")
+                    _state.value = SandboxState.Error("apt update failed: ${updateOut.take(400)}")
+                    return@launch
+                }
+                val indexCheck = executor.execute("apt-cache show ca-certificates", timeoutSeconds = 15)
+                if (indexCheck["success"] != true) {
+                    _state.value = SandboxState.Error(
+                        "Package index empty after apt update. Network may be unavailable in sandbox.\n" +
+                        "apt output: ${updateOut.take(400)}"
+                    )
                     return@launch
                 }
 
