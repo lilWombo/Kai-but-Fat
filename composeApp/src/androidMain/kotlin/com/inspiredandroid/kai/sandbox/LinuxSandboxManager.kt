@@ -259,6 +259,11 @@ class LinuxSandboxManager(private val context: Context) {
                 )
 
                 _state.value = SandboxState.Installing("Updating package lists...")
+                // Remove any leftover .list files in sources.list.d to prevent duplicates.
+                executor.execute(
+                    "rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources",
+                    timeoutSeconds = 5,
+                )
                 val updateResult = executor.execute(
                     "DEBIAN_FRONTEND=noninteractive apt-get update --allow-insecure-repositories -o Acquire::Check-Valid-Until=false",
                     timeoutSeconds = 180,
