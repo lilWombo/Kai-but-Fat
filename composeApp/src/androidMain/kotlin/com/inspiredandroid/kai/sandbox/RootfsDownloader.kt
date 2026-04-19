@@ -314,4 +314,121 @@ class RootfsDownloader {
                 "Acquire::http::Timeout \"30\";\n",
         )
     }
+
+    /**
+     * Downloads .deb packages for the given list using the Java network stack
+     * (bypasses proot network restrictions). Packages are saved into the apt
+     * archives cache dir so dpkg -i can install them without any network inside proot.
+     *
+     * @param packages list of Debian package names to download
+     * @param archivesDir the host-side /var/cache/apt/archives directory
+     * @param arch Debian architecture string (arm64, amd64, armhf, i386)
+     * @param onProgress callback with (currentPkg, totalPkgs)
+     */
+    suspend fun downloadAndCachePackages(
+        packages: List<String>,
+        archivesDir: File,
+        arch: String,
+        onProgress: (current: Int, total: Int, pkg: String) -> Unit,
+    ): List<File> = withContext(Dispatchers.IO) {
+        archivesDir.mkdirs()
+        File(archivesDir, "partial").mkdirs()
+
+        val debArch = when (arch) {
+            "aarch64" -> "arm64"
+            "x86_64" -> "amd64"
+            "armhf" -> "armhf"
+            "x86" -> "i386"
+            else -> "arm64"
+        }
+
+        // Download and parse Packages.gz to build a package index
+        val packagesIndex = mutableMapOf<String, PackageInfo>()
+        for (suite in listOf("bookworm/main", "bookworm-updates/main", "bookworm-security/main")) {
+            val baseUrl = if (suite.startsWith("bookworm-security"))
+                "https://security.debian.org/debian-security/dists/${"bookworm-security"}/main/binary-$debArch/Packages.gz"
+            else
+                "https://deb.debian.org/debian/dists/${suite.substringBefore("/")}/main/binary-$debArch/Packages.gz"
+            try {
+                val gz = downloadBytes(baseUrl)
+                parsePackagesGz(gz, packagesIndex)
+            } catch (_: Exception) { /* non-fatal: continue with other suites */ }
+        }
+
+        // Shallow dependency resolution — collect packages + their direct Depends
+        val toDownload = mutableSetOf<String>()
+        val queue = ArrayDeque(packages)
+        val visited = mutableSetOf<String>()
+        while (queue.isNotEmpty()) {
+            val pkg = queue.removeFirst()
+            if (pkg in visited) continue
+            visited += pkg
+            toDownload += pkg
+            // Add direct dependencies (non-optional)
+            packagesIndex[pkg]?.depends
+                ?.split(",")
+                ?.map { it.trim().substringBefore(" ").substringBefore(":") }
+                ?.filter { it.isNotBlank() && !it.startsWith("|") }
+                ?.forEach { dep ->
+                    val depName = dep.trim()
+                    if (depName !in visited && depName.isNotBlank()) queue += depName
+                }
+        }
+
+        // Download each .deb
+        val downloaded = mutableListOf<File>()
+        val pkgList = toDownload.filter { it in packagesIndex }.toList()
+        pkgList.forEachIndexed { idx, pkg ->
+            onProgress(idx + 1, pkgList.size, pkg)
+            val info = packagesIndex[pkg] ?: return@forEachIndexed
+            val debUrl = "https://deb.debian.org/debian/${info.filename}"
+            val outFile = File(archivesDir, info.filename.substringAfterLast("/"))
+            if (outFile.exists() && outFile.length() > 0) {
+                downloaded += outFile
+                return@forEachIndexed
+            }
+            try {
+                val bytes = downloadBytes(debUrl)
+                File(archivesDir, "partial", outFile.name).also {
+                    it.writeBytes(bytes)
+                    it.renameTo(outFile)
+                }
+                downloaded += outFile
+            } catch (_: Exception) { /* skip unavailable packages */ }
+        }
+        downloaded
+    }
+
+    private fun downloadBytes(url: String): ByteArray {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 60_000
+        conn.setRequestProperty("User-Agent", "Kai-Android/1.0")
+        return try {
+            conn.inputStream.use { it.readBytes() }
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    private fun parsePackagesGz(gz: ByteArray, index: MutableMap<String, PackageInfo>) {
+        val text = java.util.zip.GZIPInputStream(gz.inputStream()).use {
+            it.readBytes().toString(Charsets.UTF_8)
+        }
+        var name = ""; var filename = ""; var depends = ""
+        for (line in text.lineSequence()) {
+            when {
+                line.startsWith("Package: ") -> { name = line.substring(9).trim(); filename = ""; depends = "" }
+                line.startsWith("Filename: ") -> filename = line.substring(10).trim()
+                line.startsWith("Depends: ")  -> depends = line.substring(9).trim()
+                line.isBlank() && name.isNotBlank() && filename.isNotBlank() -> {
+                    index[name] = PackageInfo(name, filename, depends)
+                    name = ""
+                }
+            }
+        }
+    }
+
+    private data class PackageInfo(val name: String, val filename: String, val depends: String)
+
 }
