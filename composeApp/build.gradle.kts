@@ -3,6 +3,24 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
+val sherpaOnnxVersion = "1.12.39"
+val sherpaOnnxAarName = "sherpa-onnx-static-link-onnxruntime-$sherpaOnnxVersion.aar"
+val sherpaOnnxLocalAar = layout.buildDirectory.file("libs/$sherpaOnnxAarName")
+
+val downloadSherpaOnnx by tasks.registering {
+    val outFile = sherpaOnnxLocalAar.get().asFile
+    outputs.file(outFile)
+    onlyIf { !outFile.exists() }
+    doLast {
+        outFile.parentFile.mkdirs()
+        logger.lifecycle("Downloading sherpa-onnx $sherpaOnnxVersion AAR...")
+        java.net.URL(
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/" +
+                "v$sherpaOnnxVersion/$sherpaOnnxAarName"
+        ).openStream().use { inp -> outFile.outputStream().use { inp.copyTo(it) } }
+    }
+}
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -82,6 +100,7 @@ kotlin {
         }
         desktopMain.kotlin.srcDir("src/jvmShared/kotlin")
         androidMain.dependencies {
+            implementation(files(sherpaOnnxLocalAar))
             implementation(libs.androidx.activity.compose)
             implementation(libs.spght.encryptedprefs)
             implementation(libs.ktor.client.android)
@@ -249,3 +268,7 @@ class VersionGeneratorPlugin : Plugin<Project> {
 }
 
 apply<VersionGeneratorPlugin>()
+
+afterEvaluate {
+    tasks.named("preBuild") { dependsOn(downloadSherpaOnnx) }
+}
