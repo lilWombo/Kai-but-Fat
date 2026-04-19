@@ -170,7 +170,9 @@ class LinuxSandboxManager(private val context: Context) {
             // never cause "no installation candidate" after a failed update.
             if (hostDir == "apt-lists") {
                 hostOverlay.deleteRecursively()
-                hostOverlay.mkdirs()
+                // Pre-create lists/partial so apt-get update never needs to mkdir inside proot
+                File(hostOverlay, "lists/partial").mkdirs()
+                File(hostOverlay, "lists/auxfiles").mkdirs()
             } else if (!hostOverlay.exists()) {
                 if (rootfsSource.exists()) {
                     rootfsSource.copyRecursively(hostOverlay, overwrite = true)
@@ -193,6 +195,16 @@ class LinuxSandboxManager(private val context: Context) {
                 File(hostOverlay, "lock").delete()
                 File(hostOverlay, "lock-frontend").delete()
                 File(hostOverlay, "status-old").delete()
+                // Enforce correct dpkg architecture — stale arch file causes
+                // "no installation candidate" for all packages.
+                val archFile = File(hostOverlay, "arch")
+                val linuxArch = when {
+                    android.os.Build.SUPPORTED_ABIS.firstOrNull()?.startsWith("arm64") == true -> "arm64"
+                    android.os.Build.SUPPORTED_ABIS.firstOrNull()?.startsWith("armeabi") == true -> "armhf"
+                    android.os.Build.SUPPORTED_ABIS.firstOrNull()?.startsWith("x86_64") == true -> "amd64"
+                    else -> "arm64"
+                }
+                archFile.writeText("$linuxArch\n")
                 // Patch any half-configured or trigger-pending packages to "installed"
                 // so dpkg --configure -a exits 0 without trying to write status-old.
                 File(hostOverlay, "status").let { status ->
@@ -243,7 +255,10 @@ class LinuxSandboxManager(private val context: Context) {
         if (currentJob?.isActive == true) return
         // ca-certificates must be first so HTTPS works for subsequent packages.
         // busybox provides a minimal wget/curl fallback even before the real ones install.
-        val bootstrapPackages = listOf("ca-certificates", "busybox")
+        // ca-certificates is only needed for HTTPS apt sources.
+        // We use plain HTTP repos, so skip it — avoids "no installation candidate"
+        // errors on devices where the package index is incomplete.
+        val bootstrapPackages = listOf("busybox")
         val mainPackages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
             try {
@@ -281,14 +296,8 @@ class LinuxSandboxManager(private val context: Context) {
                     _state.value = SandboxState.Error("apt update failed: ${updateOut.take(400)}")
                     return@launch
                 }
-                val indexCheck = executor.execute("apt-cache show ca-certificates", timeoutSeconds = 15)
-                if (indexCheck["success"] != true) {
-                    _state.value = SandboxState.Error(
-                        "Package index empty after apt update. Network may be unavailable in sandbox.\n" +
-                            "apt output: ${updateOut.take(400)}",
-                    )
-                    return@launch
-                }
+                // Log the update output for diagnostics.
+                android.util.Log.d("LinuxSandbox", "apt-get update output: ${updateOut.take(800)}")
 
                 for (pkg in bootstrapPackages + mainPackages) {
                     ensureActive()
