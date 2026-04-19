@@ -289,6 +289,9 @@ class RootfsDownloader {
         )
         // Switch apt sources to plain HTTP — proot has no CA bundle so HTTPS
         // transport fails before ca-certificates can be installed.
+        // Clear sources.list.d first to prevent "configured multiple times" warnings.
+        val sourcesListD = File(rootfsDir, "etc/apt/sources.list.d")
+        sourcesListD.listFiles()?.forEach { it.delete() }
         val sourcesFile = File(rootfsDir, "etc/apt/sources.list")
         sourcesFile.parentFile?.mkdirs()
         sourcesFile.writeText(
