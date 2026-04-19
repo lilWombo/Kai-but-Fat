@@ -285,7 +285,7 @@ class LinuxSandboxManager(private val context: Context) {
                 if (indexCheck["success"] != true) {
                     _state.value = SandboxState.Error(
                         "Package index empty after apt update. Network may be unavailable in sandbox.\n" +
-                        "apt output: ${updateOut.take(400)}"
+                            "apt output: ${updateOut.take(400)}",
                     )
                     return@launch
                 }
