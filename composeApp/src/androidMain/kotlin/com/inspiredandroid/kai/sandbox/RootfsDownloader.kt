@@ -346,7 +346,7 @@ class RootfsDownloader {
         val packagesIndex = mutableMapOf<String, PackageInfo>()
         for (suite in listOf("bookworm/main", "bookworm-updates/main", "bookworm-security/main")) {
             val baseUrl = if (suite.startsWith("bookworm-security"))
-                "https://security.debian.org/debian-security/dists/${"bookworm-security"}/main/binary-$debArch/Packages.gz"
+                "https://security.debian.org/debian-security/dists/bookworm-security/main/binary-$debArch/Packages.gz"
             else
                 "https://deb.debian.org/debian/dists/${suite.substringBefore("/")}/main/binary-$debArch/Packages.gz"
             try {
@@ -389,10 +389,9 @@ class RootfsDownloader {
             }
             try {
                 val bytes = downloadBytes(debUrl)
-                File(archivesDir, "partial", outFile.name).also {
-                    it.writeBytes(bytes)
-                    it.renameTo(outFile)
-                }
+                val partialFile = File(File(archivesDir, "partial"), outFile.name)
+                partialFile.writeBytes(bytes)
+                partialFile.renameTo(outFile)
                 downloaded += outFile
             } catch (_: Exception) { /* skip unavailable packages */ }
         }
