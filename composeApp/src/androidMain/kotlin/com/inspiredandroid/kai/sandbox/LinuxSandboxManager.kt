@@ -255,10 +255,9 @@ class LinuxSandboxManager(private val context: Context) {
         if (currentJob?.isActive == true) return
         // ca-certificates must be first so HTTPS works for subsequent packages.
         // busybox provides a minimal wget/curl fallback even before the real ones install.
-        // ca-certificates is only needed for HTTPS apt sources.
-        // We use plain HTTP repos, so skip it — avoids "no installation candidate"
-        // errors on devices where the package index is incomplete.
-        val bootstrapPackages = listOf("busybox")
+        // No bootstrap packages needed — we use plain HTTP repos so ca-certificates
+        // is unnecessary, and busybox is in Debian contrib (not main).
+        val bootstrapPackages = emptyList<String>()
         val mainPackages = listOf("bash", "curl", "wget", "git", "jq", "python3", "python3-pip", "nodejs")
         currentJob = scope.launch {
             try {
