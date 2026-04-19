@@ -18,7 +18,8 @@ object SelfAddMcpTool : Tool {
 
     override val schema = ToolSchema(
         name = "add_mcp_server",
-        description = """Permanently add a new MCP server to your own tool configuration.
+        description = """
+Permanently add a new MCP server to your own tool configuration.
 Use when you discover a useful MCP server and want it available in future sessions.
 The server appears in Settings > Tools > MCP Servers and is enabled immediately.
 Prefer hosted SSE/HTTP MCP servers (URLs ending in /mcp or /sse).
@@ -56,7 +57,7 @@ Example: add_mcp_server(name="Context7", url="https://mcp.context7.com/mcp")""",
             mcpManager.setServerEnabled(config.id, true)
             mapOf(
                 "success" to true,
-                "message" to "MCP server \"$name\" added and enabled.",
+                "message" to "MCP server '$name' added and enabled.",
                 "id" to config.id,
                 "url" to url,
             )
