@@ -141,7 +141,9 @@ class ProotExecutor(
         "-b", "/proc",
         "-b", "/sys",
         // resolv.conf is seeded by RootfsDownloader.writeResolvConf() before every install.
-        // Do NOT bind-mount host file — guest path may not exist on first boot, causing proot abort.
+        // Do NOT bind-mount the host resolv.conf — guest path may not exist on first boot.
+        // Bind /etc/hosts so hostname resolution works inside proot.
+        "-b", "/etc/hosts:/etc/hosts",
         "-b", "$homePath:/root",
         "-b", "$tmpPath:/tmp",
         // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.
