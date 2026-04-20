@@ -278,5 +278,9 @@ class VersionGeneratorPlugin : Plugin<Project> {
 apply<VersionGeneratorPlugin>()
 
 afterEvaluate {
-    tasks.named("preBuild") { dependsOn(downloadSherpaOnnx) }
+    // composeApp is a KMP library module — preBuild does not exist;
+    // hook into the per-variant preBuild tasks instead.
+    listOf("preBuildDebug", "preBuildRelease").forEach { taskName ->
+        tasks.findByName(taskName)?.dependsOn(downloadSherpaOnnx)
+    }
 }
