@@ -38,7 +38,8 @@ private const val MODEL_URL =
  */
 class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val job   = SupervisorJob()
+    private val scope  = CoroutineScope(job + Dispatchers.IO)
     private var tts: OfflineTts? = null
     private var audioTrack: AudioTrack? = null
     @Volatile private var stopRequested = false
@@ -184,7 +185,7 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
         stop()
         audioTrack?.release()
         audioTrack = null
-        scope.coroutineContext[SupervisorJob]?.cancel()
+        job.cancel()
     }
 
     // ── Model download ──────────────────────────────────────────────────────
