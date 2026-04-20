@@ -10,7 +10,12 @@ import com.k2fsa.sherpa.onnx.OfflineTts
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.marc_apps.tts.TextToSpeechInstance
 import nl.marc_apps.tts.Voice
@@ -27,42 +32,68 @@ private const val MODEL_URL =
         "vits-piper-en_US-amy-low.tar.bz2"
 
 /**
- * A [TextToSpeechInstance] backed by sherpa-onnx offline TTS (VITS piper en_US-amy-low).
- * Call [prepare] once before using [say]. The model (~63 MB) is downloaded to [Context.filesDir]
- * on first use and reused on subsequent launches.
+ * [TextToSpeechInstance] backed by sherpa-onnx offline VITS TTS (en_US-amy-low).
+ * Call [prepare] once (from an IO coroutine) before use. The ~63 MB model is
+ * downloaded to [Context.filesDir] on first launch and reused thereafter.
  */
 class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var tts: OfflineTts? = null
     private var audioTrack: AudioTrack? = null
     @Volatile private var stopRequested = false
 
-    val isReady: Boolean get() = tts != null
+    // ── TextToSpeechInstance state ──────────────────────────────────────────
+    private val _isSynthesizing = MutableStateFlow(false)
+    override val isSynthesizing: StateFlow<Boolean> = _isSynthesizing
+
+    private val _isWarmingUp = MutableStateFlow(false)
+    override val isWarmingUp: StateFlow<Boolean> = _isWarmingUp
+
+    override var volume: Int = 100
+    override var isMuted: Boolean = false
+    override var pitch: Float = 1.0f
+    override var rate: Float = 1.0f
+    override val language: String = "en-US"
+
+    @OptIn(ExperimentalVoiceApi::class)
+    override val voices: Sequence<Voice> = emptySequence()
+
+    @OptIn(ExperimentalVoiceApi::class)
+    override var currentVoice: Voice? = null
+
+    // ── Lifecycle ───────────────────────────────────────────────────────────
 
     /**
      * Downloads the model if absent, then initialises [OfflineTts] and [AudioTrack].
-     * Must be called from an IO-safe coroutine scope (e.g. [Dispatchers.IO]).
+     * Safe to call multiple times — subsequent calls are no-ops if already ready.
      */
     suspend fun prepare() = withContext(Dispatchers.IO) {
-        val modelDir = File(context.filesDir, MODEL_DIR_NAME)
-        val modelFile = File(modelDir, "model.onnx")
-        if (!modelFile.exists()) {
-            downloadAndExtract(modelDir)
-        }
-        val config = OfflineTtsConfig(
-            model = OfflineTtsModelConfig(
-                vits = OfflineTtsVitsModelConfig(
-                    model   = modelFile.absolutePath,
-                    tokens  = File(modelDir, "tokens.txt").absolutePath,
-                    dataDir = modelDir.absolutePath,
+        if (tts != null) return@withContext
+        _isWarmingUp.value = true
+        try {
+            val modelDir = File(context.filesDir, MODEL_DIR_NAME)
+            val modelFile = File(modelDir, "model.onnx")
+            if (!modelFile.exists()) {
+                downloadAndExtract(modelDir)
+            }
+            val config = OfflineTtsConfig(
+                model = OfflineTtsModelConfig(
+                    vits = OfflineTtsVitsModelConfig(
+                        model   = modelFile.absolutePath,
+                        tokens  = File(modelDir, "tokens.txt").absolutePath,
+                        dataDir = modelDir.absolutePath,
+                    ),
+                    numThreads = 2,
+                    provider   = "cpu",
                 ),
-                numThreads = 2,
-                provider   = "cpu",
-            ),
-        )
-        val engine = OfflineTts(config = config)
-        tts = engine
-        initAudioTrack(engine.sampleRate())
+            )
+            val engine = OfflineTts(config = config)
+            tts = engine
+            initAudioTrack(engine.sampleRate())
+        } finally {
+            _isWarmingUp.value = false
+        }
     }
 
     private fun initAudioTrack(sampleRate: Int) {
@@ -88,47 +119,75 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
         audioTrack?.play()
     }
 
-    override suspend fun say(text: String, clearQueue: Boolean) {
+    // ── TextToSpeechInstance speak API ──────────────────────────────────────
+
+    override suspend fun say(
+        text: String,
+        clearQueue: Boolean,
+        clearQueueOnCancellation: Boolean,
+    ) {
+        if (isMuted) return
         val engine = tts ?: return
+        if (clearQueue) stopRequested = true
         stopRequested = false
-        withContext(Dispatchers.IO) {
-            engine.generateWithCallback(
-                text     = text,
-                sid      = 0,
-                speed    = 1.0f,
-                callback = { samples ->
-                    if (stopRequested) {
-                        audioTrack?.pause()
-                        audioTrack?.flush()
-                        0
-                    } else {
-                        audioTrack?.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
-                        1
-                    }
-                },
-            )
+        _isSynthesizing.value = true
+        try {
+            withContext(Dispatchers.IO) {
+                engine.generateWithCallback(
+                    text  = text,
+                    sid   = 0,
+                    speed = rate,
+                    callback = { samples ->
+                        if (stopRequested) {
+                            audioTrack?.pause()
+                            audioTrack?.flush()
+                            0
+                        } else {
+                            audioTrack?.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
+                            1
+                        }
+                    },
+                )
+            }
+        } finally {
+            _isSynthesizing.value = false
         }
     }
 
-    override fun stopSpeaking() {
+    override fun say(
+        text: String,
+        clearQueue: Boolean,
+        callback: (Result<Unit>) -> Unit,
+    ) {
+        scope.launch {
+            runCatching { say(text, clearQueue) }
+                .also { callback(it) }
+        }
+    }
+
+    override fun enqueue(text: String, clearQueue: Boolean) {
+        scope.launch { say(text, clearQueue) }
+    }
+
+    override fun plusAssign(text: String) {
+        enqueue(text, clearQueue = false)
+    }
+
+    override fun stop() {
         stopRequested = true
         audioTrack?.pause()
         audioTrack?.flush()
+        _isSynthesizing.value = false
     }
 
     override fun close() {
-        stopSpeaking()
+        stop()
         audioTrack?.release()
         audioTrack = null
+        scope.coroutineContext[SupervisorJob]?.cancel()
     }
 
-    @OptIn(ExperimentalVoiceApi::class)
-    override var currentVoice: Voice? = null
-
-    @OptIn(ExperimentalVoiceApi::class)
-    override val voices: Set<Voice> = emptySet()
-
-    // ── model download ──────────────────────────────────────────────────────────
+    // ── Model download ──────────────────────────────────────────────────────
 
     private fun downloadAndExtract(modelDir: File) {
         modelDir.mkdirs()
@@ -138,7 +197,9 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
             conn.connectTimeout = 30_000
             conn.readTimeout    = 300_000
             try {
-                conn.inputStream.use { inp -> tmp.outputStream().use { inp.copyTo(it) } }
+                conn.inputStream.use { inp ->
+                    tmp.outputStream().use { out -> inp.copyTo(out) }
+                }
             } finally {
                 conn.disconnect()
             }
@@ -148,17 +209,12 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
         }
     }
 
-    /**
-     * Extracts a .tar.bz2 archive into [dest], stripping the top-level directory component
-     * (mirrors `tar -xjf archive.tar.bz2 --strip-components=1 -C dest`).
-     */
     private fun extractTarBz2(archive: File, dest: File) {
         archive.inputStream().buffered().use { fis ->
             BZip2CompressorInputStream(fis).use { bz2 ->
                 TarArchiveInputStream(bz2).use { tar ->
                     var entry = tar.nextEntry
                     while (entry != null) {
-                        // strip the first path component (the top-level dir in the archive)
                         val stripped = entry.name.substringAfter('/')
                         if (stripped.isNotEmpty() && !entry.isDirectory) {
                             val outFile = File(dest, stripped)
