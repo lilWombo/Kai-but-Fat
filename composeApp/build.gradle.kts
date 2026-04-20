@@ -108,7 +108,14 @@ kotlin {
         }
         desktopMain.kotlin.srcDir("src/jvmShared/kotlin")
         androidMain.dependencies {
-            implementation(files(sherpaOnnxLocalAar))
+            // fileTree + builtBy ensures downloadSherpaOnnx runs before
+            // Gradle tries to resolve this file dep at configuration time.
+            implementation(
+                fileTree(sherpaOnnxLocalAar.get().asFile.parentFile) {
+                    include(sherpaOnnxAarName)
+                    builtBy(downloadSherpaOnnx)
+                }
+            )
             implementation(libs.androidx.activity.compose)
             implementation(libs.spght.encryptedprefs)
             implementation(libs.ktor.client.android)
@@ -277,10 +284,3 @@ class VersionGeneratorPlugin : Plugin<Project> {
 
 apply<VersionGeneratorPlugin>()
 
-afterEvaluate {
-    // composeApp is a KMP library module — preBuild does not exist;
-    // hook into the per-variant preBuild tasks instead.
-    listOf("preBuildDebug", "preBuildRelease").forEach { taskName ->
-        tasks.findByName(taskName)?.dependsOn(downloadSherpaOnnx)
-    }
-}
