@@ -709,8 +709,9 @@ class RemoteDataRepository(
 
             val category = classifyFile(fileMimeType, fileName)
             if (category == FileCategory.UNSUPPORTED) throw UnsupportedFileTypeException()
-            if (category == FileCategory.TEXT && rawBytes.size > MAX_TEXT_FILE_BYTES) throw FileTooLargeException()
-            if (category == FileCategory.PDF && rawBytes.size > MAX_PDF_BYTES) throw FileTooLargeException()
+            if (category == FileCategory.TEXT   && rawBytes.size > MAX_TEXT_FILE_BYTES)   throw FileTooLargeException()
+            if (category == FileCategory.PDF    && rawBytes.size > MAX_PDF_BYTES)         throw FileTooLargeException()
+            if (category == FileCategory.BINARY && rawBytes.size > MAX_BINARY_FILE_BYTES) throw FileTooLargeException()
 
             when (category) {
                 FileCategory.IMAGE -> {
@@ -734,6 +735,12 @@ class RemoteDataRepository(
                 FileCategory.PDF -> Attachment(
                     data = Base64.encode(rawBytes),
                     mimeType = "application/pdf",
+                    fileName = fileName,
+                )
+
+                FileCategory.BINARY -> Attachment(
+                    data = Base64.encode(rawBytes),
+                    mimeType = fileMimeType ?: "application/octet-stream",
                     fileName = fileName,
                 )
 

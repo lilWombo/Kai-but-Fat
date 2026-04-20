@@ -144,8 +144,9 @@ class ProotExecutor(
         // Do NOT bind-mount the host resolv.conf — guest path may not exist on first boot.
         // Bind /etc/hosts so hostname resolution works inside proot.
         "-b", "/etc/hosts:/etc/hosts",
-        // Bind Android's DNS proxy socket so getaddrinfo() inside proot
-        // resolves hostnames via the app's own network stack.
+        // Bind the host resolver config so getaddrinfo() uses real DNS.
+        // The dnsproxyd socket provides Android's network stack to proot processes.
+        "-b", "/etc/resolv.conf:/etc/resolv.conf",
         "-b", "/dev/socket/dnsproxyd:/dev/socket/dnsproxyd",
         "-b", "$homePath:/root",
         "-b", "$tmpPath:/tmp",

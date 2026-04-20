@@ -22,11 +22,13 @@ import nl.marc_apps.tts.Voice
 import nl.marc_apps.tts.experimental.ExperimentalVoiceApi
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
+import android.util.Log
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
 private const val MODEL_DIR_NAME = "sherpa-tts-amy"
+private const val TAG = "SherpaOnnxTts"
 private const val MODEL_URL =
     "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/" +
         "vits-piper-en_US-amy-low.tar.bz2"
@@ -76,7 +78,9 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
             val modelDir = File(context.filesDir, MODEL_DIR_NAME)
             val modelFile = File(modelDir, "model.onnx")
             if (!modelFile.exists()) {
+                Log.i(TAG, "Model not found — starting download from $MODEL_URL")
                 downloadAndExtract(modelDir)
+                Log.i(TAG, "Model download + extraction complete")
             }
             val config = OfflineTtsConfig(
                 model = OfflineTtsModelConfig(
@@ -92,6 +96,9 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
             val engine = OfflineTts(config = config)
             tts = engine
             initAudioTrack(engine.sampleRate())
+        } catch (e: Exception) {
+            Log.e(TAG, "sherpa-onnx TTS prepare() failed", e)
+            throw e
         } finally {
             _isWarmingUp.value = false
         }
@@ -194,17 +201,23 @@ class SherpaOnnxTtsInstance(private val context: Context) : TextToSpeechInstance
         modelDir.mkdirs()
         val tmp = File(context.cacheDir, "sherpa-tts-model.tar.bz2")
         try {
+            Log.d(TAG, "Connecting to $MODEL_URL")
             val conn = URL(MODEL_URL).openConnection() as HttpURLConnection
             conn.connectTimeout = 30_000
             conn.readTimeout    = 300_000
             try {
+                Log.d(TAG, "Downloading model (HTTP ${conn.responseCode})...")
                 conn.inputStream.use { inp ->
                     tmp.outputStream().use { out -> inp.copyTo(out) }
                 }
+                Log.d(TAG, "Download complete (${tmp.length() / 1024 / 1024} MB), extracting...")
             } finally {
                 conn.disconnect()
             }
             extractTarBz2(tmp, modelDir)
+        } catch (e: Exception) {
+            Log.e(TAG, "Model download failed", e)
+            throw e
         } finally {
             tmp.delete()
         }

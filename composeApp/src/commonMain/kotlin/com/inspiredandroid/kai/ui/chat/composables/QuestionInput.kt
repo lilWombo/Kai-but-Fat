@@ -139,16 +139,12 @@ fun QuestionInput(
             }
         }
 
-        val allowFileAttachment = supportedFileExtensions.isNotEmpty()
-        val filePickerLauncher = if (allowFileAttachment) {
-            rememberFilePickerLauncher(
-                type = FileKitType.File(extensions = supportedFileExtensions),
-                mode = FileKitMode.Multiple(),
-            ) { files ->
-                files?.forEach { addFile(it) }
-            }
-        } else {
-            null
+        // Accept any file type — classification happens in ChatViewModel
+        val filePickerLauncher = rememberFilePickerLauncher(
+            type = FileKitType.File(),
+            mode = FileKitMode.Multiple(),
+        ) { files ->
+            files?.forEach { addFile(it) }
         }
 
         val focusRequester = remember { FocusRequester() }
@@ -223,17 +219,13 @@ fun QuestionInput(
             } else {
                 KeyboardActions() // No keyboard send action on mobile
             },
-            leadingIcon = if (filePickerLauncher != null) {
-                {
-                    CircleIconButton(
-                        icon = vectorResource(Res.drawable.ic_attach),
-                        onClick = { filePickerLauncher.launch() },
-                        modifier = Modifier.padding(start = 7.dp),
-                        tint = MaterialTheme.colorScheme.onBackground,
-                    )
-                }
-            } else {
-                null
+            leadingIcon = {
+                CircleIconButton(
+                    icon = vectorResource(Res.drawable.ic_attach),
+                    onClick = { filePickerLauncher.launch() },
+                    modifier = Modifier.padding(start = 7.dp),
+                    tint = MaterialTheme.colorScheme.onBackground,
+                )
             },
             keyboardOptions = KeyboardOptions(
                 imeAction = if (isMobilePlatform) ImeAction.Default else ImeAction.Send,
