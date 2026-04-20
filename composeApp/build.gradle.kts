@@ -2,6 +2,15 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.net.URL
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
+}
 
 val sherpaOnnxVersion = "1.12.39"
 val sherpaOnnxAarName = "sherpa-onnx-static-link-onnxruntime-$sherpaOnnxVersion.aar"
@@ -14,20 +23,19 @@ val downloadSherpaOnnx by tasks.registering {
     doLast {
         outFile.parentFile.mkdirs()
         logger.lifecycle("Downloading sherpa-onnx $sherpaOnnxVersion AAR...")
-        java.net.URL(
+        val connection = URL(
             "https://github.com/k2-fsa/sherpa-onnx/releases/download/" +
                 "v$sherpaOnnxVersion/$sherpaOnnxAarName"
-        ).openStream().use { inp -> outFile.outputStream().use { inp.copyTo(it) } }
+        ).openConnection()
+        connection.connect()
+        connection.getInputStream().use { inputStream ->
+            outFile.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
     }
 }
 
-plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.kotlinSerialization)
-}
 
 kotlin {
     androidLibrary {
