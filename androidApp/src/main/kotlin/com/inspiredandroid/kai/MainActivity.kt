@@ -1,5 +1,6 @@
 package com.inspiredandroid.kai
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -8,11 +9,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.inspiredandroid.kai.tts.rememberSherpaOnnxTts
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.init
+import nl.marc_apps.tts.TextToSpeechEngine
+import nl.marc_apps.tts.rememberTextToSpeechOrNull
 import org.koin.android.ext.android.get
 
 class MainActivity : ComponentActivity() {
@@ -46,13 +53,19 @@ class MainActivity : ComponentActivity() {
                 )
             }
             val navController = rememberNavController()
-            // sherpa-onnx TTS — returns null until the model is downloaded and ready
-            val textToSpeech = rememberSherpaOnnxTts()
+            // Defer TTS initialization until after the first frame
+            var ttsReady by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) { ttsReady = true }
+            val textToSpeech = if (ttsReady) {
+                rememberTextToSpeechOrNull(TextToSpeechEngine.Google)
+            } else {
+                null
+            }
             App(
-                navController  = navController,
-                textToSpeech   = textToSpeech,
-                isKoinStarted  = true,
-                onAppOpens     = { appOpens ->
+                navController = navController,
+                textToSpeech = textToSpeech,
+                isKoinStarted = true,
+                onAppOpens = { appOpens ->
                     if (appOpens % 5 == 0) {
                         requestReview(this@MainActivity)
                     }
