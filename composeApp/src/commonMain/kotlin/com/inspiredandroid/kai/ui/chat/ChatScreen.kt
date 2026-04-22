@@ -243,7 +243,6 @@ private fun InteractiveModeScreen(uiState: ChatUiState) {
                             inputExpanded = false
                             uiState.actions.ask(it)
                         },
-                        supportedFileExtensions = uiState.supportedFileExtensions,
                         isLoading = uiState.isLoading,
                         cancel = uiState.actions.cancel,
                         availableServices = uiState.availableServices,
@@ -711,7 +710,6 @@ private fun ChatModeScreen(
                 addFile = uiState.actions.addFile,
                 removeFile = uiState.actions.removeFile,
                 ask = uiState.actions.ask,
-                supportedFileExtensions = uiState.supportedFileExtensions,
                 isLoading = uiState.isLoading,
                 cancel = uiState.actions.cancel,
                 availableServices = uiState.availableServices,

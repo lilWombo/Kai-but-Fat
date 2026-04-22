@@ -83,7 +83,6 @@ fun QuestionInput(
     addFile: (PlatformFile) -> Unit,
     removeFile: (PlatformFile) -> Unit,
     ask: (String) -> Unit,
-    supportedFileExtensions: ImmutableList<String>,
     isLoading: Boolean = false,
     cancel: () -> Unit = {},
     availableServices: ImmutableList<ServiceEntry> = persistentListOf(),

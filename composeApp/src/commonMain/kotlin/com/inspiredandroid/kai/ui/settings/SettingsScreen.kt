@@ -1662,6 +1662,14 @@ private fun GeneralContent(uiState: SettingsUiState) {
                             onImportSettings = uiState.onImportSettings,
                         )
                     }
+                    if (uiState.crashLogs.isNotEmpty()) {
+                        SettingsCard {
+                            CrashLogsSection(
+                                logs = uiState.crashLogs,
+                                onClear = uiState.onClearCrashLogs,
+                            )
+                        }
+                    }
                 }
             }
         } else {

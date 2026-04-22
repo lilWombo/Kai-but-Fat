@@ -2,10 +2,12 @@ package com.inspiredandroid.kai.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.inspiredandroid.kai.DaemonController
 import com.inspiredandroid.kai.data.DataRepository
 import com.inspiredandroid.kai.data.ImportSection
 import com.inspiredandroid.kai.data.Service
+import com.inspiredandroid.kai.getAppFilesDirectory
 import com.inspiredandroid.kai.getBackgroundDispatcher
 import com.inspiredandroid.kai.httpClient
 import com.inspiredandroid.kai.inference.LocalModel
@@ -26,11 +28,14 @@ import com.inspiredandroid.kai.network.dtos.SponsorsResponseDto
 import com.inspiredandroid.kai.platformName
 import com.inspiredandroid.kai.tools.NotificationPermissionController
 import com.inspiredandroid.kai.ui.AppTheme
+
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
@@ -44,11 +49,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
+
 import kotlin.coroutines.CoroutineContext
-import com.inspiredandroid.kai.getAppFilesDirectory
+
 import java.io.File
+
 
 class SettingsViewModel(
     private val dataRepository: DataRepository,
