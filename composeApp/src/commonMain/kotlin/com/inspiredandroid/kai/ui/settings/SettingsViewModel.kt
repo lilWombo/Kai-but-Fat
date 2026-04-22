@@ -168,8 +168,12 @@ class SettingsViewModel(
     private val crashLogsState = MutableStateFlow<List<CrashLog>>(emptyList())
 
     private fun loadCrashLogs() {
+        // Capture path on the calling thread (main) before switching to IO,
+        // since getAppFilesDirectory() uses Koin inject() which is not
+        // safe to call on a background dispatcher.
+        val crashDirPath = runCatching { getAppFilesDirectory() }.getOrNull() ?: return
         viewModelScope.launch(backgroundDispatcher) {
-            val dir = File(getAppFilesDirectory(), "crashes")
+            val dir = File(crashDirPath, "crashes")
             val logs = dir.listFiles()
                 ?.sortedByDescending { it.lastModified() }
                 ?.take(20)
@@ -190,8 +194,9 @@ class SettingsViewModel(
     }
 
     fun clearCrashLogs() {
+        val crashDirPath = runCatching { getAppFilesDirectory() }.getOrNull() ?: return
         viewModelScope.launch(backgroundDispatcher) {
-            runCatching { File(getAppFilesDirectory(), "crashes").deleteRecursively() }
+            runCatching { File(crashDirPath, "crashes").deleteRecursively() }
             crashLogsState.value = emptyList()
             _state.update { it.copy(crashLogs = persistentListOf()) }
         }
