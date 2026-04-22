@@ -44,7 +44,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlin.coroutines.CoroutineContext
+import com.inspiredandroid.kai.getAppFilesDirectory
+import java.io.File
 
 class SettingsViewModel(
     private val dataRepository: DataRepository,
@@ -149,6 +153,8 @@ class SettingsViewModel(
         onExportSettings = ::onExportSettings,
         onImportSettings = ::onImportSettings,
         onUndoDelete = ::onUndoDelete,
+        crashLogs = _crashLogs.value.toImmutableList(),
+        onClearCrashLogs = ::clearCrashLogs,
     )
 
     private val _state = MutableStateFlow(buildFullState())
@@ -158,6 +164,38 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = _state.value,
     )
+
+    private val _crashLogs = MutableStateFlow<List<CrashLog>>(emptyList())
+
+    private fun loadCrashLogs() {
+        viewModelScope.launch(backgroundDispatcher) {
+            val dir = File(getAppFilesDirectory(), "crashes")
+            val logs = dir.listFiles()
+                ?.sortedByDescending { it.lastModified() }
+                ?.take(20)
+                ?.map { f ->
+                    val raw = f.nameWithoutExtension.removePrefix("crash_")
+                    val ts = if (raw.length == 15)
+                        "${raw.substring(0,4)}-${raw.substring(4,6)}-${raw.substring(6,8)} ${raw.substring(9,11)}:${raw.substring(11,13)}:${raw.substring(13,15)}"
+                    else raw
+                    CrashLog(
+                        fileName = f.name,
+                        timestamp = ts,
+                        content = runCatching { f.readText() }.getOrElse { "Read error: ${it.message}" },
+                    )
+                } ?: emptyList()
+            _crashLogs.value = logs
+            _state.update { it.copy(crashLogs = logs.toImmutableList()) }
+        }
+    }
+
+    fun clearCrashLogs() {
+        viewModelScope.launch(backgroundDispatcher) {
+            runCatching { File(getAppFilesDirectory(), "crashes").deleteRecursively() }
+            _crashLogs.value = emptyList()
+            _state.update { it.copy(crashLogs = persistentListOf()) }
+        }
+    }
 
     init {
         // Observe download state from the engine singleton (survives activity recreation)
@@ -186,6 +224,7 @@ class SettingsViewModel(
                 }
             }
         }
+        loadCrashLogs()
     }
 
     fun onScreenVisible() {

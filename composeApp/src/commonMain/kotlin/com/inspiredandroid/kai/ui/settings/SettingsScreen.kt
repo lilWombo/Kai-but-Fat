@@ -40,6 +40,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -1742,6 +1744,14 @@ private fun GeneralContent(uiState: SettingsUiState) {
                         onImportSettings = uiState.onImportSettings,
                     )
                 }
+                if (uiState.crashLogs.isNotEmpty()) {
+                    SettingsCard {
+                        CrashLogsSection(
+                            logs = uiState.crashLogs,
+                            onClear = uiState.onClearCrashLogs,
+                        )
+                    }
+                }
             }
         }
     }
@@ -2891,4 +2901,75 @@ internal fun ToggleableHeadline(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+@Composable
+private fun CrashLogsSection(
+    logs: ImmutableList<CrashLog>,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expandedFile by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Crash Logs (${logs.size})",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+            TextButton(onClick = onClear) {
+                Text("Clear All")
+            }
+        }
+
+        logs.forEach { log ->
+            OutlinedButton(
+                onClick = {
+                    expandedFile = if (expandedFile == log.fileName) null else log.fileName
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+            ) {
+                Text(
+                    text = log.timestamp,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = if (expandedFile == log.fileName)
+                        Icons.Filled.KeyboardArrowUp
+                    else
+                        Icons.Filled.KeyboardArrowDown,
+                    contentDescription = if (expandedFile == log.fileName) "Collapse" else "Expand",
+                )
+            }
+
+            if (expandedFile == log.fileName) {
+                SelectionContainer {
+                    Text(
+                        text = log.content,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(8.dp),
+                    )
+                }
+            }
+        }
+    }
 }

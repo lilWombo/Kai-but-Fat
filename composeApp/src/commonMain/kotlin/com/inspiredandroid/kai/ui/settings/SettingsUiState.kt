@@ -21,6 +21,13 @@ import kotlinx.collections.immutable.persistentMapOf
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
+data class CrashLog(
+    val fileName: String,
+    val timestamp: String,
+    val content: String,
+)
+
+@Immutable
 data class ConfiguredServiceEntry(
     val instanceId: String,
     val service: Service,
@@ -145,6 +152,8 @@ data class SettingsUiState(
     val pastSponsors: ImmutableList<SponsorsResponseDto.Sponsor> = persistentListOf(),
     val pendingDeletion: PendingDeletion? = null,
     val onUndoDelete: () -> Unit = {},
+    val crashLogs: ImmutableList<CrashLog> = persistentListOf(),
+    val onClearCrashLogs: () -> Unit = {},
 )
 
 @Immutable
