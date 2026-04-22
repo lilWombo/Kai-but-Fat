@@ -153,7 +153,7 @@ class SettingsViewModel(
         onExportSettings = ::onExportSettings,
         onImportSettings = ::onImportSettings,
         onUndoDelete = ::onUndoDelete,
-        crashLogs = _crashLogs.value.toImmutableList(),
+        crashLogs = crashLogsState.value.toImmutableList(),
         onClearCrashLogs = ::clearCrashLogs,
     )
 
@@ -165,7 +165,7 @@ class SettingsViewModel(
         initialValue = _state.value,
     )
 
-    private val _crashLogs = MutableStateFlow<List<CrashLog>>(emptyList())
+    private val crashLogsState = MutableStateFlow<List<CrashLog>>(emptyList())
 
     private fun loadCrashLogs() {
         viewModelScope.launch(backgroundDispatcher) {
@@ -184,7 +184,7 @@ class SettingsViewModel(
                         content = runCatching { f.readText() }.getOrElse { "Read error: ${it.message}" },
                     )
                 } ?: emptyList()
-            _crashLogs.value = logs
+            crashLogsState.value = logs
             _state.update { it.copy(crashLogs = logs.toImmutableList()) }
         }
     }
@@ -192,7 +192,7 @@ class SettingsViewModel(
     fun clearCrashLogs() {
         viewModelScope.launch(backgroundDispatcher) {
             runCatching { File(getAppFilesDirectory(), "crashes").deleteRecursively() }
-            _crashLogs.value = emptyList()
+            crashLogsState.value = emptyList()
             _state.update { it.copy(crashLogs = persistentListOf()) }
         }
     }

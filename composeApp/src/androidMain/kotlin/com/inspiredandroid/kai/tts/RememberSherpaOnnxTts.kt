@@ -1,4 +1,4 @@
-// composeApp/src/androidMain/kotlin/com/inspiredandroid/kai/tts/rememberSherpaOnnxTts.kt
+// composeApp/src/androidMain/kotlin/com/inspiredandroid/kai/tts/RememberSherpaOnnxTts.kt
 package com.inspiredandroid.kai.tts
 
 import android.util.Log
