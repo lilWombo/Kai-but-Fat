@@ -2,12 +2,10 @@ package com.inspiredandroid.kai.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
 import com.inspiredandroid.kai.DaemonController
 import com.inspiredandroid.kai.data.DataRepository
 import com.inspiredandroid.kai.data.ImportSection
 import com.inspiredandroid.kai.data.Service
-import com.inspiredandroid.kai.getAppFilesDirectory
 import com.inspiredandroid.kai.getBackgroundDispatcher
 import com.inspiredandroid.kai.httpClient
 import com.inspiredandroid.kai.inference.LocalModel
@@ -28,14 +26,11 @@ import com.inspiredandroid.kai.network.dtos.SponsorsResponseDto
 import com.inspiredandroid.kai.platformName
 import com.inspiredandroid.kai.tools.NotificationPermissionController
 import com.inspiredandroid.kai.ui.AppTheme
-
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
@@ -49,11 +44,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-
 import kotlin.coroutines.CoroutineContext
-
-import java.io.File
-
 
 class SettingsViewModel(
     private val dataRepository: DataRepository,
@@ -158,8 +149,6 @@ class SettingsViewModel(
         onExportSettings = ::onExportSettings,
         onImportSettings = ::onImportSettings,
         onUndoDelete = ::onUndoDelete,
-        crashLogs = crashLogsState.value.toImmutableList(),
-        onClearCrashLogs = ::clearCrashLogs,
     )
 
     private val _state = MutableStateFlow(buildFullState())
@@ -169,43 +158,6 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = _state.value,
     )
-
-    private val crashLogsState = MutableStateFlow<List<CrashLog>>(emptyList())
-
-    private fun loadCrashLogs() {
-        // Capture path on the calling thread (main) before switching to IO,
-        // since getAppFilesDirectory() uses Koin inject() which is not
-        // safe to call on a background dispatcher.
-        val crashDirPath = runCatching { getAppFilesDirectory() }.getOrNull() ?: return
-        viewModelScope.launch(backgroundDispatcher) {
-            val dir = File(crashDirPath, "crashes")
-            val logs = dir.listFiles()
-                ?.sortedByDescending { it.lastModified() }
-                ?.take(20)
-                ?.map { f ->
-                    val raw = f.nameWithoutExtension.removePrefix("crash_")
-                    val ts = if (raw.length == 15)
-                        "${raw.substring(0,4)}-${raw.substring(4,6)}-${raw.substring(6,8)} ${raw.substring(9,11)}:${raw.substring(11,13)}:${raw.substring(13,15)}"
-                    else raw
-                    CrashLog(
-                        fileName = f.name,
-                        timestamp = ts,
-                        content = runCatching { f.readText() }.getOrElse { "Read error: ${it.message}" },
-                    )
-                } ?: emptyList()
-            crashLogsState.value = logs
-            _state.update { it.copy(crashLogs = logs.toImmutableList()) }
-        }
-    }
-
-    fun clearCrashLogs() {
-        val crashDirPath = runCatching { getAppFilesDirectory() }.getOrNull() ?: return
-        viewModelScope.launch(backgroundDispatcher) {
-            runCatching { File(crashDirPath, "crashes").deleteRecursively() }
-            crashLogsState.value = emptyList()
-            _state.update { it.copy(crashLogs = persistentListOf()) }
-        }
-    }
 
     init {
         // Observe download state from the engine singleton (survives activity recreation)
@@ -234,7 +186,6 @@ class SettingsViewModel(
                 }
             }
         }
-        loadCrashLogs()
     }
 
     fun onScreenVisible() {
