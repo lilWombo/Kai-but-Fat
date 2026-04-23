@@ -243,9 +243,6 @@ val scrollableTable: MarkdownComponent = {
             content = it.content,
             node = it.node,
             style = it.typography.table,
-            headerStyle = it.typography.table.copy(
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-            ),
         )
     }
 }
