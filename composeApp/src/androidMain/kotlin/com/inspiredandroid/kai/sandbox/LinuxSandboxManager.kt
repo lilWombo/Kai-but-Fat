@@ -1,6 +1,8 @@
 package com.inspiredandroid.kai.sandbox
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +49,7 @@ class LinuxSandboxManager(private val context: Context) {
             // fixes sandboxes installed before the world-writable fix.
             downloader.makeWritable(rootfs)
             bootstrapWritableOverlays(rootfs)
+            writeResolvConf() // refresh DNS on every app start
             _state.value = SandboxState.Ready
         }
     }
@@ -129,7 +132,7 @@ class LinuxSandboxManager(private val context: Context) {
         // Post-setup
         _state.value = SandboxState.Installing("Configuring...")
         downloader.makeWritable(rootfsDir)
-        downloader.writeResolvConf(rootfsDir)
+        writeResolvConf()
         bootstrapWritableOverlays(rootfsDir)
 
         val executor = createProotExecutor()
@@ -243,6 +246,39 @@ class LinuxSandboxManager(private val context: Context) {
         prepareWritableOverlays(rootfsDir)
     }
 
+    /**
+     * Returns DNS server IPs from the active network via [ConnectivityManager].
+     * Falls back to well-known public resolvers if the active network has none.
+     */
+    private fun getDeviceDnsServers(): List<String> {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return listOf("8.8.8.8", "1.1.1.1")
+        val network = cm.activeNetwork ?: return listOf("8.8.8.8", "1.1.1.1")
+        val caps = cm.getNetworkCapabilities(network)
+        if (caps == null || !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
+            return listOf("8.8.8.8", "1.1.1.1")
+        val servers = cm.getLinkProperties(network)
+            ?.dnsServers
+            ?.mapNotNull { it.hostAddress }
+            ?.filter { it.isNotEmpty() }
+        return if (servers.isNullOrEmpty()) listOf("8.8.8.8", "1.1.1.1") else servers
+    }
+
+    /**
+     * Writes the device's current DNS servers into the guest rootfs resolv.conf.
+     * Called on every app start and before every setup run so the guest always
+     * uses the active network's real resolver after Wi-Fi / mobile switches.
+     */
+    fun writeResolvConf() {
+        val rootfsDir = File(rootfsPath)
+        if (!rootfsDir.isDirectory) return
+        val content = getDeviceDnsServers().joinToString("\n") { "nameserver $it" } + "\n"
+        runCatching {
+            File(rootfsDir, "etc").mkdirs()
+            File(rootfsDir, "etc/resolv.conf").writeText(content)
+        }
+    }
+
     fun createProotExecutor(): ProotExecutor = ProotExecutor(
         prootPath = prootPath,
         libDir = sandboxDir.absolutePath,
@@ -263,7 +299,7 @@ class LinuxSandboxManager(private val context: Context) {
 
                 _state.value = SandboxState.Installing("Preparing package manager...")
                 prepareWritableOverlays(File(rootfsPath))
-                downloader.writeResolvConf(File(rootfsPath)) // re-seed on every attempt
+                writeResolvConf() // re-seed with real device DNS on every attempt
 
                 executor.execute(
                     "rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock && " +

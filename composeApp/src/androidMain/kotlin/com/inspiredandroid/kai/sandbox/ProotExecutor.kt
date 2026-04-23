@@ -140,14 +140,12 @@ class ProotExecutor(
         "-b", "/dev/null:/dev/null",
         "-b", "/proc",
         "-b", "/sys",
-        // resolv.conf is seeded by RootfsDownloader.writeResolvConf() before every install.
-        // Do NOT bind-mount the host resolv.conf — guest path may not exist on first boot.
-        // Bind /etc/hosts so hostname resolution works inside proot.
+        // Bind /etc/hosts for hostname resolution inside proot.
+        // resolv.conf is written by LinuxSandboxManager.writeResolvConf() with
+        // real DNS IPs from ConnectivityManager before every run.
+        // Do NOT bind-mount host /etc/resolv.conf — it does not exist on Android.
+        // Do NOT bind-mount /dev/socket/dnsproxyd — permission denied for app UIDs.
         "-b", "/etc/hosts:/etc/hosts",
-        // Bind the host resolver config so getaddrinfo() uses real DNS.
-        // The dnsproxyd socket provides Android's network stack to proot processes.
-        "-b", "/etc/resolv.conf:/etc/resolv.conf",
-        "-b", "/dev/socket/dnsproxyd:/dev/socket/dnsproxyd",
         "-b", "$homePath:/root",
         "-b", "$tmpPath:/tmp",
         // Bind writable host dirs over the dpkg/apt state paths inside the rootfs.

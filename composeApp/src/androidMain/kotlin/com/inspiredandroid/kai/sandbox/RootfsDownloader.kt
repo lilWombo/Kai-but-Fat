@@ -282,8 +282,8 @@ class RootfsDownloader {
     fun writeResolvConf(rootfsDir: File) {
         val etcDir = File(rootfsDir, "etc")
         etcDir.mkdirs()
-        // Write fallback DNS — proot also bind-mounts the host /etc/resolv.conf
-        // so the device's real resolver is used first.
+        // Write fallback DNS. LinuxSandboxManager.writeResolvConf() overwrites this
+        // with the device's real DNS from ConnectivityManager before every run.
         File(etcDir, "resolv.conf").writeText(
             "nameserver 8.8.8.8\nnameserver 1.1.1.1\nnameserver 9.9.9.9\n",
         )
