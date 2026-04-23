@@ -34,7 +34,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -110,14 +109,13 @@ private fun terminalColors(darkBackground: Boolean = false): TerminalColors {
 @Composable
 fun TerminalContent(
     sandboxController: SandboxController?,
+    outputLines: MutableList<TerminalLine>,
     modifier: Modifier = Modifier,
     showHeader: Boolean = false,
     darkBackground: Boolean = false,
-    initialLines: List<TerminalLine> = emptyList(),
 ) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val outputLines = remember { mutableStateListOf<TerminalLine>().apply { addAll(initialLines) } }
     var inputText by remember { mutableStateOf("") }
     var isRunning by remember { mutableStateOf(false) }
     var activeHandle by remember { mutableStateOf<CommandHandle?>(null) }

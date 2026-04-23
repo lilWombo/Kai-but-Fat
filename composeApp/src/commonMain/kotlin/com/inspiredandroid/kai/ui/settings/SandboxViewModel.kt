@@ -1,11 +1,13 @@
 package com.inspiredandroid.kai.ui.settings
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.inspiredandroid.kai.SandboxController
 import com.inspiredandroid.kai.data.DataRepository
 import com.inspiredandroid.kai.platformName
+import com.inspiredandroid.kai.ui.settings.TerminalLine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -38,6 +40,13 @@ class SandboxViewModel(
     )
 
     val state = _state.asStateFlow()
+
+    /**
+     * Terminal output lines — persists across tab navigation because ViewModels
+     * outlive individual composable lifetimes. Backed by a SnapshotStateList so
+     * Compose observes element-level additions without full state copies.
+     */
+    val terminalLines = mutableStateListOf<TerminalLine>()
 
     init {
         viewModelScope.launch {

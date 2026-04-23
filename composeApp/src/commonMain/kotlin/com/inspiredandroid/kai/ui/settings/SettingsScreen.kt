@@ -294,6 +294,7 @@ fun SettingsScreen(
         onInstallPackages = sandboxViewModel::onInstallPackages,
         onNavigateBack = onNavigateBack,
         navigationTabBar = navigationTabBar,
+        terminalLines = sandboxViewModel.terminalLines,
     )
 }
 
@@ -308,7 +309,7 @@ fun SettingsScreenContent(
     onInstallPackages: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     navigationTabBar: (@Composable () -> Unit)? = null,
-    terminalPreviewLines: List<TerminalLine> = emptyList(),
+    terminalLines: MutableList<TerminalLine> = mutableListOf(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val undoLabel = stringResource(Res.string.snackbar_undo)
@@ -404,7 +405,7 @@ fun SettingsScreenContent(
                             onToggleSandbox = onToggleSandbox,
                             onResetSandbox = onResetSandbox,
                             onInstallPackages = onInstallPackages,
-                            previewLines = terminalPreviewLines,
+                            previewLines = terminalLines,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -472,7 +473,7 @@ fun SettingsScreenContent(
                                         onCancelSandbox = onCancelSandbox,
                                         onResetSandbox = onResetSandbox,
                                         onInstallPackages = onInstallPackages,
-                                        previewLines = terminalPreviewLines,
+                                        previewLines = terminalLines,
                                     )
                                 }
                             }
@@ -2412,7 +2413,7 @@ private fun TerminalTabContent(
     onCancelSandbox: () -> Unit = {},
     onResetSandbox: () -> Unit,
     onInstallPackages: () -> Unit,
-    previewLines: List<TerminalLine> = emptyList(),
+    previewLines: MutableList<TerminalLine> = mutableListOf(),
     modifier: Modifier = Modifier,
 ) {
     if (sandboxState.sandboxReady) {
@@ -2504,7 +2505,7 @@ private fun TerminalTabContent(
                     sandboxController = sandboxController,
                     modifier = Modifier.fillMaxSize(),
                     darkBackground = true,
-                    initialLines = previewLines,
+                    outputLines = previewLines,
                 )
             }
         }

@@ -1,9 +1,12 @@
 package com.inspiredandroid.kai.ui.chat.composables
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import com.mikepenz.markdown.compose.components.MarkdownComponent
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeFence
+import com.mikepenz.markdown.compose.elements.MarkdownTable
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownTypography
@@ -78,7 +82,8 @@ internal fun BotMessage(
                                 components = markdownComponents(
                                     codeBlock = highlightedCodeBlock,
                                     codeFence = highlightedCodeFence,
-                                ),
+                                    table = scrollableTable,
+                                    ),
                                 typography = smallerMarkdownTypography(),
                             )
                         }
@@ -100,7 +105,8 @@ internal fun BotMessage(
                                 components = markdownComponents(
                                     codeBlock = highlightedCodeBlock,
                                     codeFence = highlightedCodeFence,
-                                ),
+                                    table = scrollableTable,
+                                    ),
                                 typography = smallerMarkdownTypography(),
                             )
                         }
@@ -123,7 +129,8 @@ internal fun BotMessage(
                 components = markdownComponents(
                     codeBlock = highlightedCodeBlock,
                     codeFence = highlightedCodeFence,
-                ),
+                    table = scrollableTable,
+                    ),
                 typography = smallerMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth()
                     .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
@@ -227,4 +234,18 @@ val highlightedCodeFence: MarkdownComponent = {
 
 val highlightedCodeBlock: MarkdownComponent = {
     MarkdownHighlightedCodeBlock(content = it.content, node = it.node, style = it.typography.code, showHeader = true)
+}
+
+/** Wraps the default MarkdownTable in a horizontal scroll so wide tables never clip cell text. */
+val scrollableTable: MarkdownComponent = {
+    Box(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+        MarkdownTable(
+            content = it.content,
+            node = it.node,
+            style = it.typography.table,
+            headerStyle = it.typography.table.copy(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            ),
+        )
+    }
 }
