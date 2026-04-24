@@ -32,7 +32,6 @@ import com.mikepenz.markdown.compose.components.MarkdownComponent
 import com.mikepenz.markdown.compose.components.markdownComponents
 import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeBlock
 import com.mikepenz.markdown.compose.elements.MarkdownHighlightedCodeFence
-import com.mikepenz.markdown.compose.elements.MarkdownTable
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownTypography
@@ -82,9 +81,9 @@ internal fun BotMessage(
                                 components = markdownComponents(
                                     codeBlock = highlightedCodeBlock,
                                     codeFence = highlightedCodeFence,
-                                    table = scrollableTable,
-                                    ),
+                                ),
                                 typography = smallerMarkdownTypography(),
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
                             )
                         }
 
@@ -105,9 +104,9 @@ internal fun BotMessage(
                                 components = markdownComponents(
                                     codeBlock = highlightedCodeBlock,
                                     codeFence = highlightedCodeFence,
-                                    table = scrollableTable,
-                                    ),
+                                ),
                                 typography = smallerMarkdownTypography(),
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
                             )
                         }
                     }
@@ -129,10 +128,11 @@ internal fun BotMessage(
                 components = markdownComponents(
                     codeBlock = highlightedCodeBlock,
                     codeFence = highlightedCodeFence,
-                    table = scrollableTable,
                     ),
                 typography = smallerMarkdownTypography(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
                     .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
             )
         }
@@ -236,13 +236,3 @@ val highlightedCodeBlock: MarkdownComponent = {
     MarkdownHighlightedCodeBlock(content = it.content, node = it.node, style = it.typography.code, showHeader = true)
 }
 
-/** Wraps the default MarkdownTable in a horizontal scroll so wide tables never clip cell text. */
-val scrollableTable: MarkdownComponent = {
-    Box(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-        MarkdownTable(
-            content = it.content,
-            node = it.node,
-            style = it.typography.table,
-        )
-    }
-}
