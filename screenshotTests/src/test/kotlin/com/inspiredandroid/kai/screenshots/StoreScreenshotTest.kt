@@ -146,7 +146,7 @@ class StoreScreenshotTest(
         snap("04", DarkColorScheme) {
             SettingsScreenContent(
                 uiState = ScreenshotTestData.freeConnected,
-                terminalPreviewLines = ScreenshotTestData.sandboxTerminalLines,
+                terminalLines = ScreenshotTestData.sandboxTerminalLines,
             )
         }
     }
@@ -156,7 +156,7 @@ class StoreScreenshotTest(
         snap("05", LightColorScheme) {
             SettingsScreenContent(
                 uiState = ScreenshotTestData.settingsTools,
-                terminalPreviewLines = ScreenshotTestData.sandboxTerminalLines,
+                terminalLines = ScreenshotTestData.sandboxTerminalLines,
             )
         }
     }
@@ -166,7 +166,7 @@ class StoreScreenshotTest(
         snap("06", DarkColorScheme) {
             SettingsScreenContent(
                 uiState = ScreenshotTestData.settingsGeneral,
-                terminalPreviewLines = ScreenshotTestData.sandboxTerminalLines,
+                terminalLines = ScreenshotTestData.sandboxTerminalLines,
             )
         }
     }
@@ -177,7 +177,7 @@ class StoreScreenshotTest(
             SettingsScreenContent(
                 uiState = ScreenshotTestData.settingsSandbox,
                 sandboxState = ScreenshotTestData.sandboxState,
-                terminalPreviewLines = ScreenshotTestData.sandboxTerminalLines,
+                terminalLines = ScreenshotTestData.sandboxTerminalLines,
             )
         }
     }

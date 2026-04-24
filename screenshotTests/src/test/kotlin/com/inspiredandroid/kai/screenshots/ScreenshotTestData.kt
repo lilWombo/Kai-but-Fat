@@ -212,7 +212,7 @@ object ScreenshotTestData {
             "CPU: Cortex-A520*4 + Cortex-A720*3 + Cortex-X4 (8) @ 3.10 GHz\n" +
             "Memory: 6.75 GiB / 7.39 GiB (91%)"
 
-    val sandboxTerminalLines = listOf(
+    val sandboxTerminalLines = mutableListOf(
         TerminalLine.Command("fastfetch"),
         TerminalLine.Output(fastfetchOutput),
     )

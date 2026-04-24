@@ -137,7 +137,7 @@ class ScreenshotTest {
             SettingsScreenContent(
                 uiState = ScreenshotTestData.settingsSandbox,
                 sandboxState = ScreenshotTestData.sandboxState,
-                terminalPreviewLines = ScreenshotTestData.sandboxTerminalLines,
+                terminalLines = ScreenshotTestData.sandboxTerminalLines,
             )
         }
     }
