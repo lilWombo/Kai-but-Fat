@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -62,6 +63,12 @@ internal fun BotMessage(
     onUiCallback: ((event: String, data: Map<String, String>) -> Unit)? = null,
 ) {
     val hasUiBlocks = remember(message) { KaiUiParser.containsUiBlocks(message) }
+    val isInspectionMode = LocalInspectionMode.current
+    val markdownScrollModifier = if (isInspectionMode) {
+        Modifier
+    } else {
+        Modifier.horizontalScroll(rememberScrollState())
+    }
 
     if (hasUiBlocks && isInteractive) {
         // Active UI: render interactive kai-ui blocks
@@ -83,7 +90,7 @@ internal fun BotMessage(
                                     codeFence = highlightedCodeFence,
                                 ),
                                 typography = smallerMarkdownTypography(),
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                modifier = markdownScrollModifier,
                             )
                         }
 
@@ -106,7 +113,7 @@ internal fun BotMessage(
                                     codeFence = highlightedCodeFence,
                                 ),
                                 typography = smallerMarkdownTypography(),
-                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                modifier = markdownScrollModifier,
                             )
                         }
                     }
@@ -130,9 +137,8 @@ internal fun BotMessage(
                     codeFence = highlightedCodeFence,
                     ),
                 typography = smallerMarkdownTypography(),
-                modifier = Modifier
+                modifier = markdownScrollModifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
                     .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
             )
         }
