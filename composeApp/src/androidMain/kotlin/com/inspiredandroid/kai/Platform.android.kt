@@ -413,7 +413,7 @@ actual fun getAvailableTools(): List<Tool> {
             add(CommonTools.openUrlTool)
         }
 
-        if (appSettings.isSandboxEnabled()) {
+        if (appSettings.isSandboxEnabled() && appSettings.isToolEnabled(ShellCommandTool.schema.name)) {
             add(ShellCommandTool)
             add(ProcessManagerTool)
         }

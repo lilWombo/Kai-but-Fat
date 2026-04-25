@@ -22,7 +22,7 @@ object SelfEnableToolTool : Tool {
 Enable or disable one of your own tools by its ID.
 Use to activate tools you need for a task before using them. Changes persist across sessions.
 Common tool IDs: brave_search, web_search, exa_search, fetch_url, github,
-                 firecrawl, tavily_search, shell_command, parse_code,
+                 firecrawl, tavily_search, execute_shell_command, parse_code,
                  send_notification, create_calendar_event, set_alarm,
                  vector_memory, run_agent, ollama, add_mcp_server""",
         parameters = mapOf(

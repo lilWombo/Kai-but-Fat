@@ -1854,10 +1854,10 @@ private fun IntegrationsContent(
                     emoji = "\uD83D\uDC0D",
                     title = "Code Runner",
                     description = "Execute Python, Node.js or shell scripts via the Linux sandbox.",
-                    requiredTools = listOf("shell_command"),
+                    requiredTools = listOf("execute_shell_command"),
                     enabledToolIds = enabledToolIds,
                     onEnableAll = {
-                        settingsState.onToggleTool("shell_command", true)
+                        settingsState.onToggleTool("execute_shell_command", true)
                     },
                 )
                 IntegrationItem(
