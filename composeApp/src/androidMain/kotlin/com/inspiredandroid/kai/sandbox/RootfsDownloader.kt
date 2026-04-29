@@ -342,17 +342,28 @@ class RootfsDownloader {
             else -> "arm64"
         }
 
-        // Download and parse Packages.gz to build a package index
+        // Download and parse Packages.gz to build a package index.
+        // Keep the archive base URL with each package so security packages do not
+        // get downloaded from the main Debian mirror by mistake.
         val packagesIndex = mutableMapOf<String, PackageInfo>()
-        for (suite in listOf("bookworm/main", "bookworm-updates/main", "bookworm-security/main")) {
-            val baseUrl = if (suite.startsWith("bookworm-security")) {
-                "https://security.debian.org/debian-security/dists/bookworm-security/main/binary-$debArch/Packages.gz"
-            } else {
-                "https://deb.debian.org/debian/dists/${suite.substringBefore("/")}/main/binary-$debArch/Packages.gz"
-            }
+        val packageSources = listOf(
+            PackageSource(
+                indexUrl = "https://deb.debian.org/debian/dists/bookworm/main/binary-$debArch/Packages.gz",
+                archiveBaseUrl = "https://deb.debian.org/debian",
+            ),
+            PackageSource(
+                indexUrl = "https://deb.debian.org/debian/dists/bookworm-updates/main/binary-$debArch/Packages.gz",
+                archiveBaseUrl = "https://deb.debian.org/debian",
+            ),
+            PackageSource(
+                indexUrl = "https://security.debian.org/debian-security/dists/bookworm-security/main/binary-$debArch/Packages.gz",
+                archiveBaseUrl = "https://security.debian.org/debian-security",
+            ),
+        )
+        for (source in packageSources) {
             try {
-                val gz = downloadBytes(baseUrl)
-                parsePackagesGz(gz, packagesIndex)
+                val gz = downloadBytes(source.indexUrl)
+                parsePackagesGz(gz, source.archiveBaseUrl, packagesIndex)
             } catch (_: Exception) { /* non-fatal: continue with other suites */ }
         }
 
@@ -382,7 +393,7 @@ class RootfsDownloader {
         pkgList.forEachIndexed { idx, pkg ->
             onProgress(idx + 1, pkgList.size, pkg)
             val info = packagesIndex[pkg] ?: return@forEachIndexed
-            val debUrl = "https://deb.debian.org/debian/${info.filename}"
+            val debUrl = "${info.archiveBaseUrl}/${info.filename}"
             val outFile = File(archivesDir, info.filename.substringAfterLast("/"))
             if (outFile.exists() && outFile.length() > 0) {
                 downloaded += outFile
@@ -411,7 +422,7 @@ class RootfsDownloader {
         }
     }
 
-    private fun parsePackagesGz(gz: ByteArray, index: MutableMap<String, PackageInfo>) {
+    private fun parsePackagesGz(gz: ByteArray, archiveBaseUrl: String, index: MutableMap<String, PackageInfo>) {
         val text = java.util.zip.GZIPInputStream(gz.inputStream()).use {
             it.readBytes().toString(Charsets.UTF_8)
         }
@@ -431,12 +442,19 @@ class RootfsDownloader {
                 line.startsWith("Depends: ") -> depends = line.substring(9).trim()
 
                 line.isBlank() && name.isNotBlank() && filename.isNotBlank() -> {
-                    index[name] = PackageInfo(name, filename, depends)
+                    index[name] = PackageInfo(name, filename, depends, archiveBaseUrl)
                     name = ""
                 }
             }
         }
     }
 
-    private data class PackageInfo(val name: String, val filename: String, val depends: String)
+    private data class PackageSource(val indexUrl: String, val archiveBaseUrl: String)
+
+    private data class PackageInfo(
+        val name: String,
+        val filename: String,
+        val depends: String,
+        val archiveBaseUrl: String,
+    )
 }

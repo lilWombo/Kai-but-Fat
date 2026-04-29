@@ -135,9 +135,9 @@ class LinuxSandboxManager(private val context: Context) {
         writeResolvConf()
         bootstrapWritableOverlays(rootfsDir)
 
-        val executor = createProotExecutor()
-        executor.execute("apt-get update -qq", timeoutSeconds = 60)
-
+        // Do not run apt networking inside proot here. On Android, guest network access
+        // is unreliable; package downloads are handled later via RootfsDownloader using
+        // the host Java network stack instead.
         _state.value = SandboxState.Ready
     }
 
