@@ -81,6 +81,11 @@ interface DataRepository {
     fun isMcpServerConnected(serverId: String): Boolean
     suspend fun connectEnabledMcpServers()
 
+    // Credential vault
+    fun getCredentials(): List<CredentialEntry>
+    suspend fun upsertCredential(id: String, label: String, fields: Map<String, String>): CredentialEntry
+    suspend fun deleteCredential(id: String)
+
     // Soul (system prompt)
     fun getSoulText(): String
     fun setSoulText(text: String)

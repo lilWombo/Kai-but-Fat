@@ -194,6 +194,7 @@ class RemoteDataRepository(
     private val conversationStorage: ConversationStorage,
     private val toolExecutor: ToolExecutor,
     private val memoryStore: MemoryStore,
+    private val credentialStore: CredentialStore,
     private val taskStore: TaskStore,
     private val heartbeatManager: HeartbeatManager,
     private val emailStore: EmailStore,
@@ -1665,6 +1666,11 @@ class RemoteDataRepository(
     }
 
     // Soul (system prompt)
+    override fun getCredentials(): List<CredentialEntry> = credentialStore.getAll()
+    override suspend fun upsertCredential(id: String, label: String, fields: Map<String, String>): CredentialEntry =
+        credentialStore.upsert(id, label, fields)
+    override suspend fun deleteCredential(id: String) { credentialStore.delete(id) }
+
     override fun getSoulText(): String = appSettings.getSoulText()
 
     override fun setSoulText(text: String) {

@@ -1,6 +1,7 @@
 package com.inspiredandroid.kai.ui.settings
 
 import androidx.compose.runtime.Immutable
+import com.inspiredandroid.kai.data.CredentialEntry
 import com.inspiredandroid.kai.data.EmailAccount
 import com.inspiredandroid.kai.data.HeartbeatLogEntry
 import com.inspiredandroid.kai.data.ImportSection
@@ -143,6 +144,10 @@ data class SettingsUiState(
     val onImportSettings: (ByteArray, Set<ImportSection>, Boolean) -> ImportResult = { _, _, _ -> ImportResult.Failure },
     val currentSponsors: ImmutableList<SponsorsResponseDto.Sponsor> = persistentListOf(),
     val pastSponsors: ImmutableList<SponsorsResponseDto.Sponsor> = persistentListOf(),
+    val credentials: ImmutableList<CredentialEntry> = persistentListOf(),
+    val onAddCredential: (String) -> Unit = {},
+    val onSaveCredential: (String, String, Map<String, String>) -> Unit = { _, _, _ -> },
+    val onDeleteCredential: (String) -> Unit = {},
     val pendingDeletion: PendingDeletion? = null,
     val onUndoDelete: () -> Unit = {},
 )

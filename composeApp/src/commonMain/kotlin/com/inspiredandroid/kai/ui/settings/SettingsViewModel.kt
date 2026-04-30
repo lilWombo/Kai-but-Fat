@@ -36,6 +36,8 @@ import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -90,6 +92,10 @@ class SettingsViewModel(
         onToggleMemory = ::onToggleMemory,
         memories = dataRepository.getMemories().toImmutableList(),
         onDeleteMemory = ::onDeleteMemory,
+        credentials = dataRepository.getCredentials().toImmutableList(),
+        onAddCredential = ::onAddCredential,
+        onSaveCredential = ::onSaveCredential,
+        onDeleteCredential = ::onDeleteCredential,
         isSchedulingEnabled = dataRepository.isSchedulingEnabled(),
         onToggleScheduling = ::onToggleScheduling,
         scheduledTasks = dataRepository.getScheduledTasks().toImmutableList(),
@@ -369,6 +375,28 @@ class SettingsViewModel(
     private fun onToggleMemory(enabled: Boolean) {
         dataRepository.setMemoryEnabled(enabled)
         _state.update { it.copy(isMemoryEnabled = enabled) }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    private fun onAddCredential(label: String) {
+        viewModelScope.launch(backgroundDispatcher) {
+            dataRepository.upsertCredential(Uuid.random().toString(), label, emptyMap())
+            _state.update { buildFullState() }
+        }
+    }
+
+    private fun onSaveCredential(id: String, label: String, fields: Map<String, String>) {
+        viewModelScope.launch(backgroundDispatcher) {
+            dataRepository.upsertCredential(id, label, fields)
+            _state.update { buildFullState() }
+        }
+    }
+
+    private fun onDeleteCredential(id: String) {
+        viewModelScope.launch(backgroundDispatcher) {
+            dataRepository.deleteCredential(id)
+            _state.update { buildFullState() }
+        }
     }
 
     private fun onDeleteMemory(key: String) {

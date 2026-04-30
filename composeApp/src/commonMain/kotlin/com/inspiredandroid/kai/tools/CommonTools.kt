@@ -1,6 +1,8 @@
 package com.inspiredandroid.kai.tools
 
 import com.inspiredandroid.kai.data.AppSettings
+import com.inspiredandroid.kai.data.CredentialStore
+import com.inspiredandroid.kai.tools.CredentialTool
 import com.inspiredandroid.kai.data.MemoryCategory
 import com.inspiredandroid.kai.data.MemoryStore
 import com.inspiredandroid.kai.httpClient
@@ -236,7 +238,10 @@ object CommonTools {
         listOf(memoryStoreToolInfo, memoryForgetToolInfo, memoryLearnToolInfo, memoryReinforceToolInfo) +
         SchedulingTools.schedulingToolDefinitions +
         HeartbeatTools.heartbeatToolDefinitions +
-        EmailTools.emailToolDefinitions
+        EmailTools.emailToolDefinitions +
+        listOf(CredentialTool.toolInfo)
+
+    fun getCredentialTool(store: CredentialStore) = CredentialTool(store)
 
     fun getCommonTools(appSettings: AppSettings): List<Tool> = buildList {
         if (appSettings.isToolEnabled(localTimeTool.schema.name)) {

@@ -5,6 +5,7 @@ import com.inspiredandroid.kai.data.ConversationStorage
 import com.inspiredandroid.kai.data.DataRepository
 import com.inspiredandroid.kai.data.EmailStore
 import com.inspiredandroid.kai.data.HeartbeatManager
+import com.inspiredandroid.kai.data.CredentialStore
 import com.inspiredandroid.kai.data.MemoryStore
 import com.inspiredandroid.kai.data.RemoteDataRepository
 import com.inspiredandroid.kai.data.TaskScheduler
@@ -45,6 +46,9 @@ val appModule = module {
     single<MemoryStore> {
         MemoryStore(get())
     }
+    single<CredentialStore> {
+        CredentialStore(get())
+    }
     single<TaskStore> {
         TaskStore(get())
     }
@@ -70,6 +74,7 @@ val appModule = module {
             conversationStorage = get(),
             toolExecutor = get(),
             memoryStore = get(),
+            credentialStore = get(),
             taskStore = get(),
             heartbeatManager = get(),
             emailStore = get(),

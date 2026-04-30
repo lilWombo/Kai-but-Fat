@@ -502,6 +502,10 @@ class AppSettings(private val settings: Settings) {
     }
 
     fun getFirecrawlApiKey(): String = settings.getString(KEY_FIRECRAWL_API_KEY, "")
+
+    // Credential vault
+    fun getCredentialsJson(): String = settings.getString(KEY_CREDENTIALS, "")
+    fun setCredentialsJson(json: String) = settings.putString(KEY_CREDENTIALS, json)
     fun setFirecrawlApiKey(key: String) {
         settings.putString(KEY_FIRECRAWL_API_KEY, key)
     }
@@ -1111,6 +1115,7 @@ class AppSettings(private val settings: Settings) {
         const val KEY_EXA_API_KEY = "exa_api_key"
         const val KEY_GITHUB_TOKEN = "github_token"
         const val KEY_FIRECRAWL_API_KEY = "firecrawl_api_key"
+        const val KEY_CREDENTIALS = "credential_entries"
         const val KEY_FIRST_RUN_SETUP_COMPLETE = "first_run_setup_complete"
 
         // Basic memory guidance shared by every chat variant. The advanced `## Structured

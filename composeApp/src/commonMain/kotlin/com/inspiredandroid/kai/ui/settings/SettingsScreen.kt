@@ -110,6 +110,7 @@ import androidx.compose.ui.unit.dp
 import com.inspiredandroid.kai.BackIcon
 import com.inspiredandroid.kai.SandboxController
 import com.inspiredandroid.kai.Version
+import com.inspiredandroid.kai.data.CredentialEntry
 import com.inspiredandroid.kai.data.EmailAccount
 import com.inspiredandroid.kai.data.ImportSection
 import com.inspiredandroid.kai.data.MemoryEntry
@@ -1612,6 +1613,14 @@ private fun GeneralContent(uiState: SettingsUiState) {
                             onToggleMemory = uiState.onToggleMemory,
                         )
                     }
+                    SettingsCard {
+                        CredentialCard(
+                            credentials = uiState.credentials,
+                            onAdd = uiState.onAddCredential,
+                            onSave = uiState.onSaveCredential,
+                            onDelete = uiState.onDeleteCredential,
+                        )
+                    }
                 }
                 Column(
                     modifier = Modifier.weight(1f),
@@ -2893,3 +2902,207 @@ internal fun ToggleableHeadline(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
+
+@Composable
+private fun CredentialCard(
+    credentials: ImmutableList<CredentialEntry>,
+    onAdd: (String) -> Unit,
+    onSave: (String, String, Map<String, String>) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    var showAddDialog by remember { mutableStateOf(false) }
+    var expandedId by remember { mutableStateOf<String?>(null) }
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Credential Vault", style = MaterialTheme.typography.titleMedium)
+            IconButton(onClick = { showAddDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add credential entry")
+            }
+        }
+
+        if (credentials.isEmpty()) {
+            Text(
+                text = "No entries yet. Tap + to add.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
+        }
+
+        credentials.forEach { entry ->
+            val isExpanded = expandedId == entry.id
+            val fieldStates = remember(entry.id, entry.fields) { entry.fields.toMutableMap() }
+            var newFieldKey by remember(entry.id) { mutableStateOf("") }
+            var newFieldValue by remember(entry.id) { mutableStateOf("") }
+            var editLabel by remember(entry.id) { mutableStateOf(entry.label) }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (isExpanded) {
+                            KaiOutlinedTextField(
+                                value = editLabel,
+                                onValueChange = { editLabel = it },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                label = { Text("Label") },
+                            )
+                        } else {
+                            Text(
+                                text = entry.label,
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Row {
+                            IconButton(onClick = { expandedId = if (isExpanded) null else entry.id }) {
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = if (isExpanded) "Collapse entry" else "Expand entry",
+                                )
+                            }
+                            IconButton(onClick = { onDelete(entry.id) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete entry")
+                            }
+                        }
+                    }
+
+                    if (isExpanded) {
+                        Spacer(Modifier.height(8.dp))
+
+                        entry.fields.forEach { (key, _) ->
+                            var fieldVal by remember(entry.id, key) { mutableStateOf(entry.fields[key] ?: "") }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = key,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    modifier = Modifier.width(100.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                KaiOutlinedTextField(
+                                    value = fieldVal,
+                                    onValueChange = {
+                                        fieldVal = it
+                                        fieldStates[key] = it
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f),
+                                    visualTransformation = if (
+                                        key.contains("pass", ignoreCase = true) ||
+                                        key.contains("secret", ignoreCase = true) ||
+                                        key.contains("token", ignoreCase = true)
+                                    ) PasswordVisualTransformation() else VisualTransformation.None,
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            KaiOutlinedTextField(
+                                value = newFieldKey,
+                                onValueChange = { newFieldKey = it },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Field name") },
+                            )
+                            KaiOutlinedTextField(
+                                value = newFieldValue,
+                                onValueChange = { newFieldValue = it },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Value") },
+                            )
+                            IconButton(
+                                onClick = {
+                                    if (newFieldKey.isNotBlank()) {
+                                        fieldStates[newFieldKey] = newFieldValue
+                                        newFieldKey = ""
+                                        newFieldValue = ""
+                                    }
+                                },
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Add field")
+                            }
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                onSave(entry.id, editLabel, fieldStates.toMap())
+                                expandedId = null
+                            },
+                            modifier = Modifier.align(Alignment.End),
+                        ) {
+                            Text("Save")
+                        }
+                    } else {
+                        if (entry.fields.isNotEmpty()) {
+                            Text(
+                                text = entry.fields.keys.joinToString(", "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        var dialogLabel by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false; dialogLabel = "" },
+            title = { Text("New Credential Entry") },
+            text = {
+                KaiOutlinedTextField(
+                    value = dialogLabel,
+                    onValueChange = { dialogLabel = it },
+                    singleLine = true,
+                    label = { Text("Label (e.g. GitHub, Netflix)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (dialogLabel.isNotBlank()) {
+                            onAdd(dialogLabel.trim())
+                            showAddDialog = false
+                            dialogLabel = ""
+                        }
+                    },
+                ) { Text("Add") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddDialog = false; dialogLabel = "" }) { Text("Cancel") }
+            },
+        )
+    }
+}
+

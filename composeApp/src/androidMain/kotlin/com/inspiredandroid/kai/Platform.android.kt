@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
 import com.inspiredandroid.kai.data.AppSettings
+import com.inspiredandroid.kai.data.CredentialStore
 import com.inspiredandroid.kai.data.EmailStore
 import com.inspiredandroid.kai.data.HeartbeatManager
 import com.inspiredandroid.kai.data.MemoryStore
@@ -221,6 +222,7 @@ actual fun getAvailableTools(): List<Tool> {
     val context: Context by inject(Context::class.java)
     val appSettings: AppSettings by inject(AppSettings::class.java)
     val memoryStore: MemoryStore by inject(MemoryStore::class.java)
+    val credentialStore: CredentialStore by inject(CredentialStore::class.java)
     val taskStore: TaskStore by inject(TaskStore::class.java)
     val heartbeatManager: HeartbeatManager by inject(HeartbeatManager::class.java)
     val calendarPermissionController: CalendarPermissionController by inject(CalendarPermissionController::class.java)
@@ -235,6 +237,10 @@ actual fun getAvailableTools(): List<Tool> {
             addAll(SchedulingTools.getSchedulingTools(taskStore))
             addAll(HeartbeatTools.getHeartbeatTools(heartbeatManager, memoryStore, appSettings))
         }
+        if (appSettings.isToolEnabled("credentials")) {
+            add(CommonTools.getCredentialTool(credentialStore))
+        }
+
         if (appSettings.isToolEnabled(CommonTools.localTimeTool.schema.name)) {
             add(CommonTools.localTimeTool)
         }
