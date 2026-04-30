@@ -31,6 +31,7 @@ import com.inspiredandroid.kai.tools.EmailTools
 import com.inspiredandroid.kai.tools.ExaSearchTool
 import com.inspiredandroid.kai.tools.FetchTool
 import com.inspiredandroid.kai.tools.FirecrawlTool
+import com.inspiredandroid.kai.tools.HeadlessBrowserTool
 import com.inspiredandroid.kai.tools.GitHubTool
 import com.inspiredandroid.kai.tools.HeartbeatTools
 import com.inspiredandroid.kai.tools.NotificationHelper
@@ -208,6 +209,7 @@ actual fun getPlatformToolDefinitions(): List<ToolInfo> = CommonTools.commonTool
         name = "Agent Orchestrator (smolagents)",
         description = "Run multi-step autonomous Python agents for complex tasks",
     ),
+    HeadlessBrowserTool.toolInfo,
     ToolInfo(
         id = "ollama",
         name = "On-Device Ollama",
@@ -445,6 +447,9 @@ actual fun getAvailableTools(): List<Tool> {
         }
         if (appSettings.isToolEnabled(FirecrawlTool.schema.name)) {
             add(FirecrawlTool)
+        }
+        if (appSettings.isToolEnabled(HeadlessBrowserTool.schema.name)) {
+            add(HeadlessBrowserTool)
         }
         add(SequentialThinkingTool)
         add(SelfAddMcpTool)

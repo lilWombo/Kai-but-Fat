@@ -29,33 +29,41 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-val darkPurple = Color(0xFF6200EE)
-val lightPurple = Color(0xff8063C5)
-val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(darkPurple, lightPurple))
+// Crimson brand palette
+val crimsonDark = Color(0xFFB00020)
+val crimsonLight = Color(0xFFCF6679)
+val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+    listOf(crimsonDark, crimsonLight),
+)
 
-// Animated border gradient colors
-val gradientPurple = Color(0xFF9C27B0)
-val gradientViolet = Color(0xFF7C4DFF)
-val gradientMagenta = Color(0xFFE040FB)
+// Animated border gradient colors (crimson variants)
+val gradientPurple = Color(0xFFB00020)
+val gradientViolet = Color(0xFF8B0000)
+val gradientMagenta = Color(0xFFFF1744)
 
 fun Modifier.handCursor() = pointerHoverIcon(PointerIcon.Hand, overrideDescendants = true)
 
+// Default crimson schemes
 val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
+    primary = crimsonLight,
     onPrimary = Color(0xFF000000),
-    surface = Color(0xFF1E1E1E),
-    background = Color(0xFF121212),
-    onBackground = Color(0xFFFFFFFF),
-    onSurface = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF37000B),
+    onPrimaryContainer = Color(0xFFFFDAD4),
+    surface = Color(0xFF1E1214),
+    background = Color(0xFF1B1214),
+    onBackground = Color(0xFFF5DDDF),
+    onSurface = Color(0xFFF5DDDF),
 )
 
 val LightColorScheme = lightColorScheme(
-    primary = darkPurple,
+    primary = crimsonDark,
     onPrimary = Color(0xFFFFFFFF),
-    surface = Color(0xFFF2F2F2),
-    background = Color(0xFFFFFFFF),
-    onBackground = Color(0xFF000000),
-    onSurface = Color(0xFF000000),
+    primaryContainer = Color(0xFFFFDAD4),
+    onPrimaryContainer = Color(0xFF37000B),
+    surface = Color(0xFFFFF8F8),
+    background = Color(0xFFFFFBFF),
+    onBackground = Color(0xFF201A1B),
+    onSurface = Color(0xFF201A1B),
 )
 
 /** Midnight Ocean — deep navy + cyan accent */
@@ -129,7 +137,7 @@ val SlateColorScheme = darkColorScheme(
 )
 
 enum class AppTheme(val displayName: String) {
-    DEFAULT("Default"),
+    DEFAULT("Crimson"),
     MIDNIGHT_OCEAN("Midnight Ocean"),
     EMBER("Ember"),
     FOREST("Forest"),

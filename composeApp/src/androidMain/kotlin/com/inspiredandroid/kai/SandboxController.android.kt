@@ -1,6 +1,7 @@
 package com.inspiredandroid.kai
 
 import com.inspiredandroid.kai.sandbox.LinuxSandboxManager
+import com.inspiredandroid.kai.sandbox.SandboxProxyServer
 import com.inspiredandroid.kai.sandbox.ProotHandle
 import com.inspiredandroid.kai.sandbox.SandboxState
 import kotlinx.coroutines.CoroutineScope
