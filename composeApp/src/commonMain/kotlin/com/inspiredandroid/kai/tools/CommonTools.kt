@@ -2,7 +2,6 @@ package com.inspiredandroid.kai.tools
 
 import com.inspiredandroid.kai.data.AppSettings
 import com.inspiredandroid.kai.data.CredentialStore
-import com.inspiredandroid.kai.tools.CredentialTool
 import com.inspiredandroid.kai.data.MemoryCategory
 import com.inspiredandroid.kai.data.MemoryStore
 import com.inspiredandroid.kai.httpClient
